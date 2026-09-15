@@ -1,0 +1,1 @@
+setTimeout(function(){var p=document.getElementById('preloader');if(p){p.classList.add('out');}},2500);

@@ -1,0 +1,1792 @@
+<!DOCTYPE html><html lang="en"><head><meta charset="UTF-8"><meta name="viewport" content="width=device-width,initial-scale=1,maximum-scale=1,user-scalable=no"><meta name="theme-color" content="#ff0033"><meta name="description" content="Premium Trading Strategy Library"><link rel="manifest" href="./manifest.json"><script src="./ai-config.js"></script><link rel="preconnect" href="https://fonts.googleapis.com"><link href="https://fonts.googleapis.com/css2?family=Orbitron:wght@400;700;900&family=Rajdhani:wght@400;500;600;700&family=Share+Tech+Mono&display=swap" rel="stylesheet"><link rel="stylesheet" href="https://cdn.jsdelivr.net/npm/@tabler/icons-webfont@latest/tabler-icons.min.css"><style>
+    :root {
+      --a: #ff0033;
+      --btn-dark: #cc0022;
+      --btn-light: #ff4466;
+      --a-rgb: 255, 0, 51;
+      --ag: rgba(var(--a-rgb), 0.7);
+      --ad: rgba(var(--a-rgb), 0.1);
+      --ab: rgba(var(--a-rgb), 0.35);
+      --bg0: #030407;
+      --bg1: #07080f;
+      --bg2: #0b0d18;
+      --brd: rgba(255, 255, 255, 0.05);
+      --brda: rgba(var(--a-rgb), 0.28);
+      --txt: #e8e8f0;
+      --txm: #8888aa;
+      --txd: #44445a;
+      --ease: cubic-bezier(0.175, 0.885, 0.32, 1.275);
+    }
+
+    *,
+    *::before,
+    *::after {
+      margin: 0;
+      padding: 0;
+      box-sizing: border-box;
+    }
+
+    html {
+      scroll-behavior: smooth;
+    }
+
+    body {
+      font-family: 'Rajdhani', sans-serif;
+      background: var(--bg0);
+      color: var(--txt);
+      overflow-x: hidden;
+      -webkit-font-smoothing: antialiased;
+      min-height: 100vh;
+    }
+
+    a {
+      text-decoration: none;
+      color: inherit;
+    }
+
+    button {
+      cursor: pointer;
+      font-family: inherit;
+      border: none;
+      background: none;
+    }
+
+    ::-webkit-scrollbar {
+      width: 2px;
+    }
+
+    ::-webkit-scrollbar-track {
+      background: var(--bg0);
+    }
+
+    ::-webkit-scrollbar-thumb {
+      background: var(--a);
+      border-radius: 2px;
+    }
+
+    ::selection {
+      background: var(--a);
+      color: #fff;
+    }
+
+    /* ── AMBIENT BG ── */
+    body::before {
+      content: '';
+      position: fixed;
+      inset: 0;
+      background-image: radial-gradient(ellipse 90% 50% at 50% 0%, var(--ad) 0%, transparent 60%), radial-gradient(ellipse 60% 40% at 80% 80%, var(--ad) 0%, transparent 50%);
+      background-size: 100% 100%, 100% 100%;
+      z-index: 0;
+      pointer-events: none;
+      transition: background-image 0.5s;
+    }
+
+    body::after {
+      content: '';
+      position: fixed;
+      inset: 0;
+      background-image: linear-gradient(var(--grid-line, rgba(var(--a-rgb), 0.015)) 1px, transparent 1px), linear-gradient(90deg, var(--grid-line, rgba(var(--a-rgb), 0.015)) 1px, transparent 1px);
+      background-size: 55px 55px;
+      z-index: 0;
+      pointer-events: none;
+    }
+
+    /* ── SCANLINES ── */
+    .scanline {
+      position: fixed;
+      top: 0;
+      left: 0;
+      right: 0;
+      height: 2px;
+      background: linear-gradient(90deg, transparent 0%, var(--ag) 40%, rgba(255, 255, 255, 0.25) 50%, var(--ag) 60%, transparent 100%);
+      z-index: 9;
+      pointer-events: none;
+      animation: scanDown 12s linear infinite;
+    }
+
+    @keyframes scanDown {
+      0% {
+        top: -5px;
+        opacity: 0.8
+      }
+
+      90% {
+        opacity: 0.3
+      }
+
+      100% {
+        top: 100vh;
+        opacity: 0
+      }
+    }
+
+    /* ── PARTICLES ── */
+    #pCanvas {
+      position: fixed;
+      inset: 0;
+      z-index: 0;
+      pointer-events: none;
+    }
+
+    /* ── PRELOADER ── */
+    #preloader {
+      position: fixed;
+      inset: 0;
+      background: #000;
+      z-index: 99999;
+      display: flex;
+      flex-direction: column;
+      justify-content: center;
+      align-items: center;
+      transition: opacity 0.8s ease, visibility 0.8s;
+    }
+
+    #preloader.out {
+      opacity: 0;
+      visibility: hidden;
+    }
+
+    .pl-badge {
+      font-family: 'Share Tech Mono', monospace;
+      font-size: 0.6rem;
+      letter-spacing: 7px;
+      color: var(--ag);
+      margin-bottom: 24px;
+      text-transform: uppercase;
+      animation: plBlink 1.2s step-end infinite;
+    }
+
+    @keyframes plBlink {
+
+      0%,
+      100% {
+        opacity: 1
+      }
+
+      50% {
+        opacity: 0.2
+      }
+    }
+
+    .pl-logo {
+      font-family: 'Orbitron', monospace;
+      font-size: 3.5rem;
+      font-weight: 900;
+      letter-spacing: 10px;
+      color: #fff;
+      text-transform: uppercase;
+      display: flex;
+      align-items: baseline;
+      gap: 8px;
+    }
+
+    .pl-logo .r {
+      color: var(--a);
+      text-shadow: 0 0 30px var(--a), 0 0 60px var(--ad);
+    }
+
+    .pl-track {
+      width: 240px;
+      height: 1px;
+      background: rgba(255, 255, 255, 0.06);
+      margin-top: 32px;
+      overflow: hidden;
+    }
+
+    .pl-fill {
+      height: 100%;
+      width: 0%;
+      background: linear-gradient(90deg, transparent, var(--a), #fff, var(--a));
+      background-size: 200% auto;
+      animation: plFill 2s cubic-bezier(0.4, 0, 0.2, 1) forwards, plShine 0.6s linear infinite;
+      box-shadow: 0 0 15px var(--a);
+    }
+
+    @keyframes plFill {
+      to {
+        width: 100%
+      }
+    }
+
+    @keyframes plShine {
+      to {
+        background-position: 200% center
+      }
+    }
+
+    .pl-pct {
+      font-family: 'Share Tech Mono', monospace;
+      font-size: 0.75rem;
+      letter-spacing: 3px;
+      color: var(--a);
+      margin-top: 16px;
+    }
+
+    /* ── THEME BUTTON (premium) ── */
+    .mob-theme-btn {
+      position: fixed;
+      right: 16px;
+      bottom: 88px;
+      width: 46px;
+      height: 46px;
+      border-radius: 10px;
+      background: linear-gradient(135deg, rgba(3, 4, 7, 0.98), rgba(15, 16, 28, 0.98));
+      border: 1px solid var(--brda);
+      display: flex;
+      align-items: center;
+      justify-content: center;
+      font-size: 18px;
+      z-index: 500;
+      cursor: pointer;
+      box-shadow: 0 0 24px var(--ad), 0 8px 32px rgba(0, 0, 0, 0.6), inset 0 1px 0 rgba(255, 255, 255, 0.06);
+      transition: all 0.3s var(--ease);
+      backdrop-filter: blur(20px);
+    }
+
+    .mob-theme-btn:hover {
+      border-color: var(--a);
+      box-shadow: 0 0 32px var(--ab), 0 8px 32px rgba(0, 0, 0, 0.6), inset 0 1px 0 rgba(255, 255, 255, 0.1);
+      transform: scale(1.05);
+    }
+
+    .mob-theme-btn:active {
+      transform: scale(0.92);
+    }
+
+    .mob-theme-btn .btn-ring {
+      position: absolute;
+      inset: -1px;
+      border-radius: 15px;
+      border: 1px solid transparent;
+      background: linear-gradient(135deg, var(--a), transparent, var(--a)) border-box;
+      -webkit-mask: linear-gradient(#fff 0 0) padding-box, linear-gradient(#fff 0 0);
+      -webkit-mask-composite: destination-out;
+      mask-composite: exclude;
+      opacity: 0;
+      transition: opacity 0.3s;
+    }
+
+    .mob-theme-btn:hover .btn-ring {
+      opacity: 1;
+    }
+
+    /* ── THEME PANEL (premium) ── */
+    .mob-theme-panel {
+      position: fixed;
+      right: 70px;
+      bottom: 80px;
+      background: rgba(5, 6, 12, 0.98);
+      border: 1px solid rgba(255, 255, 255, 0.06);
+      border-radius: 24px;
+      padding: 16px 12px;
+      display: none;
+      flex-direction: column;
+      gap: 10px;
+      z-index: 500;
+      backdrop-filter: blur(40px);
+      box-shadow: 0 0 60px rgba(0, 0, 0, 0.98), 0 0 0 1px rgba(255, 255, 255, 0.03), 0 20px 60px rgba(0, 0, 0, 0.5);
+      min-width: 50px;
+      align-items: center;
+    }
+
+    .mob-theme-panel::before {
+      content: 'COLOR';
+      position: absolute;
+      top: -10px;
+      left: 50%;
+      transform: translateX(-50%);
+      font-family: 'Share Tech Mono', monospace;
+      font-size: 0.38rem;
+      letter-spacing: 3px;
+      color: var(--txd);
+      background: rgba(5, 6, 12, 0.98);
+      padding: 2px 8px;
+      border-radius: 4px;
+      border: 1px solid rgba(255, 255, 255, 0.05);
+    }
+
+    .mob-theme-panel.open {
+      display: flex;
+    }
+
+    /* notification toggle in theme panel */
+    .th-notif-toggle {
+      width: 38px;
+      height: 20px;
+      border-radius: 10px;
+      background: rgba(255, 255, 255, 0.08);
+      border: 1px solid rgba(255, 255, 255, 0.12);
+      position: relative;
+      cursor: pointer;
+      transition: background 0.3s;
+      flex-shrink: 0;
+    }
+
+    .th-notif-toggle.on {
+      background: var(--a);
+      border-color: var(--a);
+      box-shadow: 0 0 10px var(--ab);
+    }
+
+    .th-notif-toggle::before {
+      content: '';
+      position: absolute;
+      top: 2px;
+      left: 2px;
+      width: 14px;
+      height: 14px;
+      border-radius: 50%;
+      background: #fff;
+      transition: transform 0.3s cubic-bezier(0.34, 1.56, 0.64, 1);
+      box-shadow: 0 1px 4px rgba(0, 0, 0, 0.4);
+    }
+
+    .th-notif-toggle.on::before {
+      transform: translateX(18px);
+    }
+
+    .th-notif-label {
+      font-family: 'Share Tech Mono', monospace;
+      font-size: 0.38rem;
+      letter-spacing: 1.5px;
+      color: var(--txd);
+      text-transform: uppercase;
+      text-align: center;
+      margin-top: -4px;
+    }
+
+    .thDot {
+      width: 22px;
+      height: 22px;
+      border-radius: 50%;
+      border: 2px solid transparent;
+      cursor: pointer;
+      transition: all 0.3s var(--ease);
+      flex-shrink: 0;
+      position: relative;
+      box-shadow: 0 2px 8px rgba(0, 0, 0, 0.4);
+    }
+
+    .thDot::after {
+      content: '';
+      position: absolute;
+      inset: -4px;
+      border-radius: 50%;
+      border: 1px solid currentColor;
+      opacity: 0;
+      transition: opacity 0.3s;
+      box-shadow: 0 0 10px currentColor;
+    }
+
+    .thDot:hover {
+      transform: scale(1.2);
+    }
+
+    .thDot:hover::after {
+      opacity: 0.5;
+    }
+
+    .thDot:active {
+      transform: scale(1.35);
+    }
+
+    .thDot.on {
+      border-color: rgba(255, 255, 255, 0.9);
+      box-shadow: 0 0 16px currentColor, 0 0 32px currentColor, 0 0 4px rgba(255, 255, 255, 0.4);
+    }
+
+    .thDot.on::after {
+      opacity: 0.8;
+    }
+
+    .th-divider {
+      width: 1px;
+      height: 16px;
+      background: linear-gradient(180deg, transparent, rgba(255, 255, 255, 0.08), transparent);
+      margin: 2px 0;
+    }
+
+    .wrap {
+      width: 100%;
+      max-width: 430px;
+      margin: 0 auto;
+      padding: 16px 14px 100px;
+      position: relative;
+      z-index: 2;
+    }
+
+    /* ── EXPANDED COLOR PALETTE ── */
+    .color-palette {
+      position: fixed; right: 16px; bottom: 80px; z-index: 600; display: none;
+      width: min(310px, calc(100vw - 32px)); padding: 16px; border-radius: 20px;
+      background: rgba(5,6,12,.98); border: 1px solid rgba(255,255,255,.08);
+      box-shadow: 0 20px 70px rgba(0,0,0,.75), 0 0 35px var(--ad);
+      backdrop-filter: blur(24px);
+    }
+    .color-palette.open { display:block; animation: paletteIn .22s ease-out; }
+    @keyframes paletteIn { from { opacity:0; transform:translateY(10px) scale(.96) } to { opacity:1; transform:none } }
+    .palette-title { font-family:'Share Tech Mono',monospace; font-size:.62rem; letter-spacing:3px; color:var(--txm); margin-bottom:12px; }
+    .color-grid { display:grid; grid-template-columns:repeat(6,1fr); gap:10px; }
+    .color-swatch { width:34px; height:34px; border-radius:11px; border:2px solid transparent; cursor:pointer; box-shadow:inset 0 1px 0 rgba(255,255,255,.25),0 5px 14px rgba(0,0,0,.35); transition:.2s var(--ease); position:relative; }
+    .color-swatch:hover { transform:translateY(-2px) scale(1.08); }
+    .color-swatch.active { border-color:#fff; box-shadow:0 0 18px currentColor,0 0 0 2px rgba(255,255,255,.12); }
+    .color-name { margin-top:12px; font-family:'Share Tech Mono',monospace; font-size:.5rem; letter-spacing:2px; color:var(--txd); text-align:center; }
+    .install-bar { margin: -4px 0 18px; padding:10px 12px; border:1px solid var(--brda); border-radius:14px; background:linear-gradient(135deg,rgba(var(--a-rgb),.12),rgba(255,255,255,.025)); display:flex; align-items:center; gap:10px; box-shadow:0 0 22px var(--ad); }
+    .install-bar img { width:38px;height:38px;border-radius:10px;border:1px solid var(--brda); box-shadow:0 0 15px var(--ad); }
+    .install-copy { flex:1; min-width:0; }
+    .install-copy b { display:block;font-family:'Orbitron',monospace;font-size:.65rem;letter-spacing:1px;color:#fff; }
+    .install-copy span { display:block;font-size:.65rem;color:var(--txm);margin-top:2px; }
+    .install-btn { padding:9px 13px;border-radius:10px;background:linear-gradient(135deg,var(--a),var(--btn-light));color:#fff;font-weight:800;font-size:.68rem;letter-spacing:.8px;box-shadow:0 0 18px var(--ad); }
+    .install-btn:active { transform:scale(.95); }
+    .brand-icon img { width:100%;height:100%;object-fit:cover;border-radius:inherit;display:block; }
+
+    /* ── HEADER ── */
+    .top-bar {
+      display: flex;
+      align-items: center;
+      justify-content: space-between;
+      margin-bottom: 20px;
+      padding: 0 2px;
+    }
+
+    .logo-row {
+      display: flex;
+      align-items: center;
+      gap: 10px;
+    }
+
+    .logo-icon {
+      width: 36px;
+      height: 36px;
+      background: var(--ad);
+      border: 1px solid var(--brda);
+      border-radius: 10px;
+      display: flex;
+      align-items: center;
+      justify-content: center;
+      color: var(--a);
+      font-size: 18px;
+      box-shadow: 0 0 15px var(--ad);
+    }
+
+    .logo-text {
+      font-family: 'Orbitron', monospace;
+      font-size: 1rem;
+      font-weight: 900;
+      letter-spacing: 5px;
+      color: #fff;
+      position: relative;
+    }
+
+    .logo-text em {
+      color: var(--a);
+      text-shadow: 0 0 15px var(--a);
+      font-style: normal;
+    }
+
+    /* ── LOGO NAME ANIMATION ── */
+    .logo-text .logo-char {
+      display: inline-block;
+      animation: logoFloat 3s ease-in-out infinite;
+      transition: color 0.3s, text-shadow 0.3s;
+    }
+
+    .logo-text .logo-char:nth-child(1) {
+      animation-delay: 0s;
+    }
+
+    .logo-text .logo-char:nth-child(2) {
+      animation-delay: 0.1s;
+    }
+
+    .logo-text .logo-char:nth-child(3) {
+      animation-delay: 0.2s;
+    }
+
+    .logo-text .logo-char:nth-child(4) {
+      animation-delay: 0.3s;
+    }
+
+    .logo-text .logo-char:nth-child(5) {
+      animation-delay: 0.4s;
+    }
+
+    .logo-text .logo-char:nth-child(6) {
+      animation-delay: 0.5s;
+    }
+
+    .logo-text .logo-char:nth-child(7) {
+      animation-delay: 0.6s;
+    }
+
+    .logo-text .logo-char:nth-child(8) {
+      animation-delay: 0.7s;
+    }
+
+    @keyframes logoFloat {
+
+      0%,
+      100% {
+        transform: translateY(0) scale(1);
+      }
+
+      40% {
+        transform: translateY(-3px) scale(1.08);
+      }
+
+      70% {
+        transform: translateY(1px) scale(0.97);
+      }
+    }
+
+    .logo-text::after {
+      content: '';
+      position: absolute;
+      bottom: -4px;
+      left: 0;
+      right: 0;
+      height: 1.5px;
+      background: linear-gradient(90deg, transparent, var(--a), transparent);
+      animation: logoline 2.5s ease-in-out infinite;
+    }
+
+    @keyframes logoline {
+
+      0%,
+      100% {
+        opacity: 0.3;
+        transform: scaleX(0.5);
+      }
+
+      50% {
+        opacity: 1;
+        transform: scaleX(1);
+      }
+    }
+
+    /* ── CARDS ── */
+    .card {
+      background: var(--bg1);
+      border: 1px solid var(--brd);
+      border-radius: 10px;
+      padding: 22px 18px;
+      margin-bottom: 12px;
+      position: relative;
+      overflow: hidden;
+    }
+
+    .card::before {
+      content: '';
+      position: absolute;
+      top: 0;
+      left: 0;
+      right: 0;
+      height: 1px;
+      background: linear-gradient(90deg, transparent, var(--ab), transparent);
+    }
+
+    /* ── HERO ── */
+    .hero-eyebrow {
+      display: flex;
+      align-items: center;
+      gap: 8px;
+      margin-bottom: 10px;
+    }
+
+    .pulse-dot {
+      width: 6px;
+      height: 6px;
+      border-radius: 50%;
+      background: var(--a);
+      flex-shrink: 0;
+      animation: pulse 2s ease-in-out infinite;
+    }
+
+    @keyframes pulse {
+
+      0%,
+      100% {
+        box-shadow: 0 0 0 0 var(--ab)
+      }
+
+      50% {
+        box-shadow: 0 0 0 5px transparent
+      }
+    }
+
+    .eyebrow-text {
+      font-family: 'Share Tech Mono', monospace;
+      font-size: 0.6rem;
+      color: var(--a);
+      text-transform: uppercase;
+      letter-spacing: 3px;
+    }
+
+    .hero-title {
+      font-family: 'Orbitron', monospace;
+      font-size: 1.6rem;
+      font-weight: 900;
+      color: #fff;
+      line-height: 1.15;
+      margin-bottom: 8px;
+      letter-spacing: 1px;
+    }
+
+    .hero-title span {
+      color: var(--a);
+      text-shadow: 0 0 20px var(--ad);
+    }
+
+    .hero-sub {
+      font-family: 'Rajdhani', sans-serif;
+      font-size: 0.95rem;
+      color: var(--txm);
+      margin-bottom: 20px;
+      line-height: 1.65;
+      font-weight: 500;
+    }
+
+    /* ── INPUT ── */
+    .input-wrap {
+      position: relative;
+      margin-bottom: 12px;
+    }
+
+    .url-input {
+      width: 100%;
+      padding: 13px 80px 13px 44px;
+      border: 1px solid rgba(255, 255, 255, 0.1);
+      border-radius: 10px;
+      background: rgba(255, 255, 255, 0.04);
+      color: var(--txt);
+      font-size: 0.9rem;
+      font-family: 'Rajdhani', sans-serif;
+      outline: none;
+      transition: border-color .25s, box-shadow .25s;
+    }
+
+    .url-input::placeholder {
+      color: var(--txd);
+    }
+
+    .url-input:focus {
+      border-color: var(--a);
+      box-shadow: 0 0 0 3px var(--ad);
+    }
+
+    .input-left-icon {
+      position: absolute;
+      left: 14px;
+      top: 50%;
+      transform: translateY(-50%);
+      color: var(--a);
+      font-size: 17px;
+      pointer-events: none;
+    }
+
+    .paste-btn {
+      position: absolute;
+      right: 8px;
+      top: 50%;
+      transform: translateY(-50%);
+      background: var(--ad);
+      color: var(--a);
+      border: 1px solid var(--brda);
+      border-radius: 6px;
+      padding: 6px 10px;
+      font-size: 0.6rem;
+      font-weight: 700;
+      cursor: pointer;
+      font-family: 'Share Tech Mono', monospace;
+      display: flex;
+      align-items: center;
+      gap: 4px;
+      letter-spacing: 1px;
+      transition: background .2s, border-color .2s;
+    }
+
+    .paste-btn:hover {
+      background: rgba(var(--a-rgb), 0.2);
+      border-color: var(--a);
+    }
+
+    .paste-btn:active {
+      transform: translateY(-50%) scale(0.95);
+    }
+
+    /* ── BUTTON ── */
+    .dl-btn {
+      width: 100%;
+      padding: 14px;
+      border-radius: 10px;
+      background: linear-gradient(135deg, var(--btn-dark, #cc0022), var(--a), var(--btn-light, #ff4466), var(--a), var(--btn-dark, #cc0022));
+      background-size: 300% auto;
+      color: #fff;
+      font-family: 'Orbitron', monospace;
+      font-size: 0.7rem;
+      font-weight: 700;
+      border: none;
+      cursor: pointer;
+      display: flex;
+      align-items: center;
+      justify-content: center;
+      gap: 9px;
+      letter-spacing: 3px;
+      transition: background-position 0.4s, box-shadow 0.3s;
+      box-shadow: 0 4px 20px var(--ab);
+      animation: btnAura 4s ease infinite;
+    }
+
+    @keyframes btnAura {
+
+      0%,
+      100% {
+        background-position: 0% center
+      }
+
+      50% {
+        background-position: 100% center
+      }
+    }
+
+    .dl-btn:disabled {
+      opacity: .3;
+      cursor: not-allowed;
+      animation: none;
+      box-shadow: none;
+    }
+
+    .dl-btn:not(:disabled):active {
+      opacity: .85;
+      transform: scale(.98);
+    }
+
+    /* ── STATUS ── */
+    .status-box {
+      display: none;
+      margin-top: 12px;
+      padding: 12px 14px;
+      border-radius: 8px;
+      align-items: center;
+      gap: 10px;
+      font-size: 0.85rem;
+      font-family: 'Rajdhani', sans-serif;
+    }
+
+    .status-box.loading {
+      background: rgba(255, 255, 255, 0.03);
+      color: var(--txm);
+      border: 1px solid rgba(255, 255, 255, 0.06);
+    }
+
+    .status-box.error {
+      background: rgba(var(--a-rgb), 0.06);
+      color: #ff6680;
+      border: 1px solid rgba(var(--a-rgb), 0.2);
+    }
+
+    .spinner {
+      width: 15px;
+      height: 15px;
+      border: 2px solid var(--ad);
+      border-top-color: var(--a);
+      border-radius: 50%;
+      animation: spin .7s linear infinite;
+      flex-shrink: 0;
+    }
+
+    @keyframes spin {
+      to {
+        transform: rotate(360deg)
+      }
+    }
+
+    /* ── RESULT ── */
+    .result-section {
+      display: none;
+      margin-top: 14px;
+    }
+
+    .result-header {
+      display: flex;
+      align-items: center;
+      gap: 8px;
+      margin-bottom: 12px;
+    }
+
+    .result-title {
+      font-family: 'Share Tech Mono', monospace;
+      font-size: 0.6rem;
+      color: var(--txd);
+      text-transform: uppercase;
+      letter-spacing: 4px;
+    }
+
+    .success-dot {
+      width: 6px;
+      height: 6px;
+      border-radius: 50%;
+      background: #00ff66;
+      box-shadow: 0 0 8px #00ff66;
+    }
+
+    .media-btn {
+      display: flex;
+      align-items: center;
+      gap: 12px;
+      padding: 14px 15px;
+      border-radius: 10px;
+      background: rgba(255, 255, 255, 0.02);
+      border: 1px solid var(--brd);
+      text-decoration: none;
+      margin-bottom: 9px;
+      transition: 0.25s;
+    }
+
+    .media-btn:active {
+      transform: scale(0.98);
+    }
+
+    .media-btn:hover {
+      border-color: var(--brda);
+      background: var(--ad);
+    }
+
+    .media-icon-wrap {
+      width: 42px;
+      height: 42px;
+      border-radius: 10px;
+      display: flex;
+      align-items: center;
+      justify-content: center;
+      font-size: 18px;
+      flex-shrink: 0;
+    }
+
+    .media-icon-wrap.video {
+      background: var(--ad);
+      color: var(--a);
+      border: 1px solid var(--brda);
+    }
+
+    .media-icon-wrap.audio {
+      background: var(--ad);
+      color: var(--a);
+      border: 1px solid var(--brda);
+      opacity: 0.8;
+    }
+
+    .media-info {
+      flex: 1;
+      min-width: 0;
+      overflow: hidden;
+    }
+
+    .media-name {
+      font-family: 'Orbitron', monospace;
+      font-size: 0.7rem;
+      font-weight: 700;
+      letter-spacing: 1px;
+      color: #fff;
+      margin-bottom: 2px;
+      white-space: nowrap;
+      overflow: hidden;
+      text-overflow: ellipsis;
+    }
+
+    .media-meta {
+      font-family: 'Share Tech Mono', monospace;
+      font-size: 0.58rem;
+      color: var(--txd);
+      letter-spacing: 1px;
+      white-space: nowrap;
+      overflow: hidden;
+      text-overflow: ellipsis;
+    }
+
+    .media-arr {
+      color: var(--txd);
+      font-size: 18px;
+    }
+
+    .img-grid {
+      display: none;
+      grid-template-columns: repeat(auto-fill, minmax(110px, 1fr));
+      gap: 9px;
+      margin-bottom: 12px;
+    }
+
+    .img-card {
+      position: relative;
+      border-radius: 10px;
+      overflow: hidden;
+      border: 1px solid var(--brd);
+    }
+
+    .img-card img {
+      width: 100%;
+      height: 130px;
+      object-fit: cover;
+      display: block;
+    }
+
+    .img-card-overlay {
+      position: absolute;
+      bottom: 0;
+      left: 0;
+      right: 0;
+      background: linear-gradient(0deg, rgba(0, 0, 0, 0.92), transparent);
+      padding: 20px 7px 8px;
+      display: flex;
+      justify-content: center;
+    }
+
+    .img-card-btn {
+      background: var(--a);
+      color: #fff;
+      font-family: 'Share Tech Mono', monospace;
+      font-size: 0.55rem;
+      letter-spacing: 1px;
+      padding: 5px 9px;
+      border-radius: 5px;
+      display: flex;
+      align-items: center;
+      gap: 4px;
+      box-shadow: 0 0 12px var(--ag);
+    }
+
+    /* ── STATS ── */
+    .stats-row {
+      display: grid;
+      grid-template-columns: repeat(2, 1fr);
+      gap: 9px;
+      margin-bottom: 12px;
+    }
+
+    .stat-card {
+      background: var(--bg1);
+      border: 1px solid var(--brd);
+      border-radius: 10px;
+      padding: 16px 12px;
+      text-align: center;
+      position: relative;
+      overflow: hidden;
+    }
+
+    .stat-card::before {
+      content: '';
+      position: absolute;
+      top: 0;
+      left: 0;
+      right: 0;
+      height: 1px;
+      background: linear-gradient(90deg, transparent, var(--a), transparent);
+    }
+
+    .stat-val {
+      font-family: 'Orbitron', monospace;
+      font-size: 1.2rem;
+      font-weight: 900;
+      color: #fff;
+      margin-bottom: 4px;
+      letter-spacing: 1px;
+    }
+
+    .stat-val em {
+      color: var(--a);
+      font-style: normal;
+      text-shadow: 0 0 12px var(--ag);
+    }
+
+    .stat-lbl {
+      font-family: 'Share Tech Mono', monospace;
+      font-size: 0.55rem;
+      color: var(--txd);
+      letter-spacing: 2px;
+      text-transform: uppercase;
+    }
+
+    /* ── FEATURES ── */
+    .feats {
+      display: grid;
+      grid-template-columns: repeat(2, 1fr);
+      gap: 9px;
+      margin-bottom: 12px;
+    }
+
+    .feat-card {
+      background: var(--bg1);
+      border: 1px solid var(--brd);
+      border-radius: 10px;
+      padding: 15px 12px;
+      display: flex;
+      align-items: flex-start;
+      gap: 10px;
+      position: relative;
+      overflow: hidden;
+      transition: 0.3s;
+    }
+
+    .feat-card::after {
+      content: '';
+      position: absolute;
+      left: 0;
+      top: 0;
+      bottom: 0;
+      width: 2px;
+      background: linear-gradient(180deg, transparent, var(--a), transparent);
+      transform: scaleY(0);
+      transition: 0.4s;
+      transform-origin: center;
+    }
+
+    .feat-card:hover::after {
+      transform: scaleY(1);
+    }
+
+    .feat-icon {
+      font-size: 16px;
+      color: var(--a);
+      flex-shrink: 0;
+      margin-top: 1px;
+    }
+
+    .feat-text {
+      font-family: 'Rajdhani', sans-serif;
+      font-size: 0.85rem;
+      color: var(--txm);
+      line-height: 1.4;
+      font-weight: 600;
+    }
+
+    /* ── HOW TO ── */
+    .section-label {
+      font-family: 'Share Tech Mono', monospace;
+      font-size: 0.6rem;
+      color: var(--a);
+      text-transform: uppercase;
+      letter-spacing: 5px;
+      margin-bottom: 12px;
+      display: flex;
+      align-items: center;
+      gap: 10px;
+    }
+
+    .section-label::before {
+      content: '';
+      width: 20px;
+      height: 1px;
+      background: var(--a);
+      box-shadow: 0 0 5px var(--a);
+    }
+
+    .how-row {
+      display: flex;
+      flex-direction: column;
+      gap: 15px;
+    }
+
+    .how-step {
+      display: flex;
+      align-items: flex-start;
+      gap: 13px;
+    }
+
+    .step-num {
+      width: 26px;
+      height: 26px;
+      border-radius: 50%;
+      background: var(--a);
+      color: #fff;
+      font-family: 'Orbitron', monospace;
+      font-size: 0.65rem;
+      font-weight: 700;
+      display: flex;
+      align-items: center;
+      justify-content: center;
+      flex-shrink: 0;
+      margin-top: 1px;
+      box-shadow: 0 0 15px var(--ag);
+    }
+
+    .step-title {
+      font-family: 'Orbitron', monospace;
+      font-size: 0.7rem;
+      font-weight: 700;
+      letter-spacing: 1px;
+      color: #fff;
+      margin-bottom: 3px;
+    }
+
+    .step-desc {
+      font-family: 'Rajdhani', sans-serif;
+      font-size: 0.88rem;
+      color: var(--txm);
+      line-height: 1.5;
+      font-weight: 500;
+    }
+
+    /* ── SUPPORTED PLATFORMS ── */
+    .platform-grid {
+      display: grid;
+      grid-template-columns: repeat(2, 1fr);
+      gap: 12px;
+      max-width: 380px;
+      margin: 0 auto;
+    }
+
+    .plat-card {
+      background: var(--bg1);
+      border: 1px solid var(--brda);
+      border-radius: 20px;
+      padding: 28px 10px;
+      display: flex;
+      flex-direction: column;
+      align-items: center;
+      gap: 12px;
+      position: relative;
+      overflow: hidden;
+      transition: 0.3s;
+      box-shadow: 0 0 40px var(--ad);
+      width: 100%;
+    }
+
+    .plat-card::before {
+      content: '';
+      position: absolute;
+      top: 0;
+      left: 0;
+      right: 0;
+      height: 1px;
+      background: linear-gradient(90deg, transparent, var(--a), transparent);
+    }
+
+    .plat-card:hover {
+      border-color: var(--a);
+      box-shadow: 0 0 60px var(--ab);
+    }
+
+    .plat-icon {
+      font-size: 52px;
+      color: var(--a);
+      text-shadow: 0 0 30px var(--a);
+    }
+
+    .plat-name {
+      font-family: 'Orbitron', monospace;
+      font-size: 0.9rem;
+      font-weight: 700;
+      color: #fff;
+      letter-spacing: 4px;
+      text-align: center;
+    }
+
+    .plat-badge {
+      font-family: 'Share Tech Mono', monospace;
+      font-size: 0.55rem;
+      padding: 4px 14px;
+      border-radius: 2px;
+      letter-spacing: 2px;
+    }
+
+    .plat-badge.soon {
+      background: rgba(255, 255, 255, 0.04);
+      color: var(--txd);
+      border: 1px solid rgba(255, 255, 255, 0.06);
+    }
+
+    .plat-badge.live {
+      background: var(--ad);
+      color: var(--a);
+      border: 1px solid var(--brda);
+    }
+
+    /* ── FAQ ACCORDION ── */
+    .faq-list {
+      display: flex;
+      flex-direction: column;
+      gap: 8px;
+    }
+
+    .faq-item {
+      background: var(--bg1);
+      border: 1px solid var(--brd);
+      border-radius: 10px;
+      overflow: hidden;
+      transition: 0.3s;
+    }
+
+    .faq-item.open {
+      border-color: var(--brda);
+    }
+
+    .faq-q {
+      display: flex;
+      align-items: center;
+      justify-content: space-between;
+      padding: 14px 16px;
+      cursor: pointer;
+      gap: 10px;
+    }
+
+    .faq-q-txt {
+      font-family: 'Rajdhani', sans-serif;
+      font-size: 0.9rem;
+      font-weight: 700;
+      color: var(--txt);
+      line-height: 1.3;
+    }
+
+    .faq-arr {
+      font-size: 14px;
+      color: var(--txd);
+      transition: 0.3s;
+      flex-shrink: 0;
+    }
+
+    .faq-item.open .faq-arr {
+      transform: rotate(180deg);
+      color: var(--a);
+    }
+
+    .faq-a {
+      display: none;
+      padding: 0 16px 14px;
+      font-family: 'Rajdhani', sans-serif;
+      font-size: 0.88rem;
+      color: var(--txm);
+      line-height: 1.6;
+      font-weight: 500;
+    }
+
+    .faq-item.open .faq-a {
+      display: block;
+    }
+
+    /* ── BOTTOM NAV ── */
+    .bnav {
+      position: fixed;
+      bottom: 0;
+      left: 0;
+      right: 0;
+      background: rgba(3, 4, 7, 0.97);
+      border-top: 1px solid var(--brd);
+      display: flex;
+      justify-content: space-around;
+      align-items: center;
+      padding: 10px 0 14px;
+      z-index: 200;
+      backdrop-filter: blur(24px);
+    }
+
+    .bnav-btn {
+      display: flex;
+      flex-direction: column;
+      align-items: center;
+      gap: 4px;
+      cursor: pointer;
+      padding: 0 16px;
+      transition: 0.2s;
+    }
+
+    .bnav-btn:active {
+      transform: scale(0.9);
+    }
+
+    .bnav-icon {
+      font-size: 18px;
+      color: var(--txd);
+      transition: 0.2s;
+    }
+
+    .bnav-lbl {
+      font-family: 'Share Tech Mono', monospace;
+      font-size: 0.5rem;
+      letter-spacing: 2px;
+      color: var(--txd);
+      transition: 0.2s;
+    }
+
+    .bnav-btn.active .bnav-icon,
+    .bnav-btn.active .bnav-lbl {
+      color: var(--a);
+    }
+
+    .bnav-btn.active .bnav-icon {
+      text-shadow: 0 0 12px var(--a);
+    }
+
+    /* ── SECTIONS (for bottom nav tabs) ── */
+    .tab-section {
+      display: none;
+    }
+
+    .tab-section.active {
+      display: block;
+    }
+
+    /* ── S-DIVIDER ── */
+    .s-div {
+      height: 1px;
+      background: linear-gradient(90deg, transparent, var(--ab), transparent);
+      margin: 4px 0 14px;
+      position: relative;
+    }
+
+    .s-div::before {
+      content: '◆';
+      position: absolute;
+      top: 50%;
+      left: 50%;
+      transform: translate(-50%, -50%);
+      color: var(--a);
+      font-size: 0.4rem;
+      background: var(--bg0);
+      padding: 0 12px;
+    }
+
+    /* ── FOOTER ── */
+    .footer {
+      text-align: center;
+      font-family: 'Share Tech Mono', monospace;
+      font-size: 0.55rem;
+      color: var(--txd);
+      margin-top: 18px;
+      padding-bottom: 10px;
+      letter-spacing: 3px;
+    }
+
+    .footer span {
+      color: var(--a);
+    }
+
+    /* ── TOAST ── */
+    #toastBox {
+      position: fixed;
+      bottom: 72px;
+      left: 12px;
+      right: 12px;
+      z-index: 9999;
+      display: flex;
+      flex-direction: column;
+      gap: 8px;
+      pointer-events: none;
+    }
+
+    .toast {
+      background: rgba(7, 8, 15, 0.98);
+      border: 1px solid var(--brd);
+      border-left: 3px solid var(--a);
+      border-radius: 8px;
+      padding: 12px 16px;
+      font-family: 'Share Tech Mono', monospace;
+      font-size: 0.68rem;
+      letter-spacing: 1px;
+      color: var(--txt);
+      display: flex;
+      align-items: center;
+      gap: 10px;
+      transform: translateY(80px);
+      opacity: 0;
+      transition: 0.4s cubic-bezier(0.175, 0.885, 0.32, 1.275);
+      box-shadow: 0 0 30px rgba(0, 0, 0, 0.9);
+    }
+
+    .toast.show {
+      transform: translateY(0);
+      opacity: 1;
+    }
+
+    .toast.err {
+      border-left-color: #ff4466;
+      color: #ff8899;
+    }
+
+    /* pill handle top */
+    .tn-pill {
+      display: none;
+    }
+    /* To hide the checkbox */
+    #checkboxInput {
+      display: none;
+    }
+
+    .toggleSwitch {
+      display: flex;
+      align-items: center;
+      justify-content: center;
+      position: relative;
+      width: 48px;
+      height: 24px;
+      background-color: rgba(255, 255, 255, 0.1);
+      border: 1px solid rgba(255, 255, 255, 0.15);
+      border-radius: 40px;
+      cursor: pointer;
+      transition-duration: .3s;
+    }
+
+    .toggleSwitch::after {
+      content: "";
+      position: absolute;
+      height: 20px;
+      width: 20px;
+      left: 1px;
+      background: conic-gradient(rgba(26, 26, 26, 0.555), #fff, rgba(26, 26, 26, 0.555), #fff, rgba(26, 26, 26, 0.555));
+      border-radius: 50%;
+      transition-duration: .3s;
+      box-shadow: 2px 2px 5px rgba(0, 0, 0, 0.5);
+    }
+
+    #checkboxInput:checked+.toggleSwitch::after {
+      transform: translateX(24px);
+      transition-duration: .3s;
+    }
+
+    /* Switch background change */
+    #checkboxInput:checked+.toggleSwitch {
+      background-color: var(--a);
+      border-color: var(--a);
+      box-shadow: 0 0 12px var(--ab);
+      transition-duration: .3s;
+    }
+    
+    /* ── ULTRA-PREMIUM HOLOGRAPHIC LOADING STATE ── */
+    .status-box.loading-card {
+      display: none; margin-top: 18px; padding: 18px 16px; border-radius: 20px;
+      background: linear-gradient(165deg, rgba(14, 18, 32, 0.94) 0%, rgba(7, 9, 18, 0.98) 100%);
+      border: 1px solid rgba(var(--a-rgb), 0.35); position: relative; overflow: hidden;
+      animation: fadeIn 0.35s ease; flex-direction: column; gap: 14px;
+    }
+    .status-box.loading-card::before {
+      content: ''; position: absolute; top: 0; left: 0; right: 0; height: 2px;
+      background: linear-gradient(90deg, transparent, var(--a), #ffffff, var(--a), transparent);
+      background-size: 200% 100%; animation: loaderSheen 2s linear infinite;
+    }
+    @keyframes loaderSheen { 0% { background-position: 200% 0; } 100% { background-position: -200% 0; } }
+    .loader-header { display: flex; align-items: center; justify-content: space-between; width: 100%; gap: 10px; }
+    .loader-pill {
+      display: inline-flex; align-items: center; gap: 7px; padding: 4px 11px; border-radius: 99px;
+      background: rgba(var(--a-rgb), 0.12); border: 1px solid rgba(var(--a-rgb), 0.35);
+      font-family: 'JetBrains Mono', monospace; font-size: 0.62rem; font-weight: 700;
+      color: var(--a); letter-spacing: 1.2px; text-transform: uppercase; flex-shrink: 0;
+    }
+    .pulse-dot { width: 7px; height: 7px; border-radius: 50%; background: var(--a); animation: pulse 1.8s ease-in-out infinite; flex-shrink: 0; }
+    @keyframes pulse { 0%, 100% { transform: scale(1); opacity: 1; } 50% { transform: scale(1.4); opacity: 0.45; } }
+    .loader-phase-tag { font-family: 'JetBrains Mono', monospace; font-size: 0.6rem; color: var(--txm); letter-spacing: 1.2px; text-transform: uppercase; white-space: nowrap; overflow: hidden; text-overflow: ellipsis; }
+    .loader-body { display: flex; align-items: center; gap: 15px; width: 100%; }
+    .cyber-spinner { position: relative; width: 44px; height: 44px; flex-shrink: 0; display: flex; align-items: center; justify-content: center; }
+    .ring-outer { position: absolute; inset: 0; border-radius: 50%; border: 2px solid transparent; border-top-color: var(--a); border-right-color: var(--a); animation: spinOuter 1.1s cubic-bezier(0.5, 0.1, 0.5, 0.9) infinite; }
+    .ring-inner { position: absolute; inset: 5px; border-radius: 50%; border: 2px dashed rgba(255, 255, 255, 0.35); border-bottom-color: var(--a); animation: spinInner 1.7s linear infinite reverse; }
+    .ring-core { width: 8px; height: 8px; border-radius: 50%; background: #ffffff; animation: corePulse 1.2s ease-in-out infinite alternate; }
+    @keyframes spinOuter { to { transform: rotate(360deg); } }
+    @keyframes spinInner { to { transform: rotate(360deg); } }
+    @keyframes corePulse { 0% { transform: scale(0.85); opacity: 0.7; } 100% { transform: scale(1.2); opacity: 1; } }
+    .loader-info { flex: 1; min-width: 0; display: flex; flex-direction: column; gap: 3px; }
+    .loader-title { font-size: 0.92rem; font-weight: 700; color: #fff; letter-spacing: 0.3px; white-space: nowrap; overflow: hidden; text-overflow: ellipsis; }
+    .loader-subtitle { font-family: 'JetBrains Mono', monospace; font-size: 0.66rem; font-weight: 600; color: var(--txm); letter-spacing: 0.8px; text-transform: uppercase; white-space: nowrap; overflow: hidden; text-overflow: ellipsis; display: flex; align-items: center; gap: 6px; }
+    .loader-subtitle .status-pill { color: var(--a); font-weight: 700; }
+    .loader-bar-wrap { width: 100%; height: 3px; background: rgba(255, 255, 255, 0.08); border-radius: 99px; overflow: hidden; position: relative; }
+    .loader-bar-line { position: absolute; top: 0; bottom: 0; left: 0; width: 45%; border-radius: 99px; background: linear-gradient(90deg, transparent, var(--a), #ffffff, var(--a), transparent); animation: loaderSlide 1.5s ease-in-out infinite; }
+    @keyframes loaderSlide { 0% { left: -45%; } 100% { left: 100%; } }
+
+  
+/* --- NEW WIZARD CSS --- */
+.wizardInputContainer {
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  position: relative;
+  width: 100%;
+  margin-bottom: 25px;
+}
+.wizardInputContainer .white,
+.wizardInputContainer .border,
+.wizardInputContainer .darkBorderBg,
+.wizardInputContainer .glow {
+  height: 100%;
+  width: 100%;
+  position: absolute;
+  overflow: hidden;
+  z-index: 0;
+  border-radius: 12px;
+  filter: blur(3px);
+  top: 0; left: 0;
+}
+.wizardInputContainer .wiz-input {
+  background-color: transparent !important;
+  border: none !important;
+  width: 100%;
+  height: 56px !important;
+  color: white !important;
+  padding: 0 15px 0 10px !important;
+  font-size: 1rem !important;
+  font-family: 'Inter', sans-serif !important;
+  box-sizing: border-box !important;
+  position: relative !important;
+  z-index: 2 !important;
+  box-shadow: none !important;
+  outline: none !important;
+}
+.wizardInputContainer .wiz-input::placeholder {
+  color: #8b949e !important;
+}
+.wizardInputMain {
+  position: relative;
+  width: 100%;
+  height: 56px;
+  z-index: 1;
+  background: #050f1d;
+  border-radius: 10px;
+  display: flex;
+  align-items: center;
+}
+.wizardInputMain:focus-within > .input-mask {
+  display: none;
+}
+.input-mask {
+  pointer-events: none;
+  width: 100px;
+  height: 20px;
+  position: absolute;
+  background: linear-gradient(90deg, transparent, #050f1d);
+  top: 18px;
+  left: 50px;
+  z-index: 3;
+}
+.cyan-mask {
+  pointer-events: none;
+  width: 30px;
+  height: 20px;
+  position: absolute;
+  background: #00e5ff;
+  top: 10px;
+  left: 5px;
+  filter: blur(20px);
+  opacity: 0.8;
+  transition: all 2s;
+  z-index: 3;
+}
+.wizardInputMain:hover > .cyan-mask {
+  opacity: 0;
+}
+.wizardInputContainer .white {
+  filter: blur(2px);
+  border-radius: 10px;
+}
+.wizardInputContainer .white::before {
+  content: "";
+  z-index: -2;
+  text-align: center;
+  top: 50%;
+  left: 50%;
+  transform: translate(-50%, -50%) rotate(83deg);
+  position: absolute;
+  width: 600px;
+  height: 600px;
+  background-repeat: no-repeat;
+  background-position: 0 0;
+  filter: brightness(1.4);
+  background-image: conic-gradient(rgba(0, 0, 0, 0) 0%, #00e5ff, rgba(0, 0, 0, 0) 8%, rgba(0, 0, 0, 0) 50%, #3a86ff, rgba(0, 0, 0, 0) 58%);
+  transition: all 2s;
+}
+.wizardInputContainer .border {
+  border-radius: 11px;
+  filter: blur(0.5px);
+}
+.wizardInputContainer .border::before {
+  content: "";
+  z-index: -2;
+  text-align: center;
+  top: 50%;
+  left: 50%;
+  transform: translate(-50%, -50%) rotate(70deg);
+  position: absolute;
+  width: 600px;
+  height: 600px;
+  filter: brightness(1.3);
+  background-repeat: no-repeat;
+  background-position: 0 0;
+  background-image: conic-gradient(#1c191c, #00e5ff 5%, #1c191c 14%, #1c191c 50%, #3a86ff 60%, #1c191c 64%);
+  transition: all 2s;
+}
+.wizardInputContainer .darkBorderBg::before {
+  content: "";
+  z-index: -2;
+  text-align: center;
+  top: 50%;
+  left: 50%;
+  transform: translate(-50%, -50%) rotate(82deg);
+  position: absolute;
+  width: 600px;
+  height: 600px;
+  background-repeat: no-repeat;
+  background-position: 0 0;
+  background-image: conic-gradient(rgba(0, 0, 0, 0), #050f1d, rgba(0, 0, 0, 0) 10%, rgba(0, 0, 0, 0) 50%, #00e5ff, rgba(0, 0, 0, 0) 60%);
+  transition: all 2s;
+}
+.wizardInputContainer:hover > .darkBorderBg::before { transform: translate(-50%, -50%) rotate(262deg); }
+.wizardInputContainer:hover > .glow::before { transform: translate(-50%, -50%) rotate(240deg); }
+.wizardInputContainer:hover > .white::before { transform: translate(-50%, -50%) rotate(263deg); }
+.wizardInputContainer:hover > .border::before { transform: translate(-50%, -50%) rotate(250deg); }
+
+.wizardInputContainer:focus-within > .darkBorderBg::before { transform: translate(-50%, -50%) rotate(442deg); transition: all 4s; }
+.wizardInputContainer:focus-within > .glow::before { transform: translate(-50%, -50%) rotate(420deg); transition: all 4s; }
+.wizardInputContainer:focus-within > .white::before { transform: translate(-50%, -50%) rotate(443deg); transition: all 4s; }
+.wizardInputContainer:focus-within > .border::before { transform: translate(-50%, -50%) rotate(430deg); transition: all 4s; }
+
+.wizardInputContainer .glow {
+  overflow: hidden;
+  filter: blur(30px);
+  opacity: 0.4;
+}
+.wizardInputContainer .glow:before {
+  content: "";
+  z-index: -2;
+  text-align: center;
+  top: 50%;
+  left: 50%;
+  transform: translate(-50%, -50%) rotate(60deg);
+  position: absolute;
+  width: 999px;
+  height: 999px;
+  background-repeat: no-repeat;
+  background-position: 0 0;
+  background-image: conic-gradient(#000, #00e5ff 5%, #000 38%, #000 50%, #3a86ff 60%, #000 87%);
+  transition: all 2s;
+  animation: saveRotate 4s 0.3s linear infinite;
+}
+@keyframes saveRotate {
+  100% { transform: translate(-50%, -50%) rotate(450deg); }
+}
+
+.new-wiz-btn {
+  background: linear-gradient(135deg, #00e5ff, #3a86ff);
+  border: none;
+  color: #02070f;
+  padding: 8px 20px;
+  border-radius: 8px;
+  font-weight: 700;
+  font-family: 'Inter', 'Orbitron', sans-serif;
+  font-size: 0.9rem;
+  cursor: pointer;
+  transition: 0.3s;
+  box-shadow: 0 4px 15px rgba(0, 229, 255, 0.3);
+  display: inline-flex;
+  align-items: center;
+  gap: 8px;
+}
+.new-wiz-btn:hover {
+  transform: translateY(-2px);
+}
+.new-wiz-btn-cancel {
+  background: rgba(255,255,255,0.05);
+  border: 1px solid rgba(255,255,255,0.1);
+  color: #fff;
+}
+.new-wiz-btn-cancel:hover {
+  background: rgba(255,255,255,0.1);
+}
+
+.wiz-card-new-style {
+  background: #050f1d !important;
+  border: 1px solid rgba(0, 229, 255, 0.3) !important;
+  border-radius: 20px !important;
+  box-shadow: 0 20px 50px rgba(0,0,0,0.8), 0 0 30px rgba(0, 229, 255, 0.1) inset !important;
+  padding: 10px !important;
+}
+
+.wizardTitle {
+  color: #fff;
+  margin-bottom: 10px;
+  font-size: 1.3rem;
+  font-family: 'Orbitron', sans-serif;
+  letter-spacing: 1px;
+  text-transform: uppercase;
+}
+.wizardDesc {
+  color: #8b949e;
+  font-size: 0.9rem;
+  margin-bottom: 20px;
+}
+/* --- END NEW WIZARD CSS --- */
+
+.strategy-app{position:relative;z-index:2;max-width:980px;margin:0 auto;padding:92px 18px 120px}.topbar{display:flex;align-items:center;justify-content:space-between;gap:12px;margin-bottom:24px}.brand{display:flex;align-items:center;gap:12px}.brand-icon{width:44px;height:44px;border:1px solid var(--brda);border-radius:12px;display:grid;place-items:center;background:linear-gradient(145deg,rgba(255,255,255,.08),rgba(0,0,0,.35));box-shadow:0 0 25px var(--ad);font-size:22px}.brand-title{font-family:'Orbitron',sans-serif;font-weight:900;letter-spacing:2px;font-size:16px}.brand-sub{font-family:'Share Tech Mono';font-size:10px;color:var(--txm);letter-spacing:2px;margin-top:3px}.hero{text-align:center;padding:24px 0 30px}.eyebrow{font-family:'Share Tech Mono';font-size:11px;letter-spacing:4px;color:var(--a);text-transform:uppercase}.hero h1{font-family:'Orbitron';font-size:clamp(28px,7vw,54px);letter-spacing:2px;margin:10px 0;text-shadow:0 0 30px var(--ad)}.hero p{color:var(--txm);max-width:600px;margin:auto;font-size:16px}.stats-row{display:grid;grid-template-columns:repeat(3,1fr);gap:10px;margin:8px 0 26px}.mini-stat{padding:14px;border:1px solid var(--brd);background:rgba(255,255,255,.025);border-radius:14px;text-align:center;backdrop-filter:blur(10px)}.mini-stat b{display:block;font-family:'Orbitron';font-size:20px;color:var(--a)}.mini-stat span{font-size:11px;color:var(--txm);letter-spacing:1px}.section-head{display:flex;align-items:center;justify-content:space-between;margin:24px 2px 12px}.section-head h2{font-family:'Orbitron';font-size:15px;letter-spacing:2px}.section-head span{font-family:'Share Tech Mono';font-size:10px;color:var(--txm)}.strategy-grid{display:grid;grid-template-columns:repeat(2,minmax(0,1fr));gap:14px}.s-card{position:relative;overflow:hidden;border:1px solid var(--brd);background:linear-gradient(145deg,rgba(255,255,255,.055),rgba(0,0,0,.3));border-radius:18px;padding:12px;box-shadow:0 12px 45px rgba(0,0,0,.28);transition:.28s var(--ease);cursor:pointer}.s-card:hover{transform:translateY(-4px);border-color:var(--brda);box-shadow:0 0 30px var(--ad),0 18px 50px rgba(0,0,0,.4)}.thumb{height:190px;border-radius:13px;overflow:hidden;background:#050507;border:1px solid rgba(255,255,255,.05);position:relative}.thumb-media-grid{display:grid;grid-template-columns:repeat(3,minmax(0,1fr));gap:5px;width:100%;height:100%}.thumb-media-grid img{width:100%;height:100%;object-fit:cover;min-width:0}.thumb-media-more{position:absolute;right:8px;top:8px;font-size:9px;letter-spacing:1px;padding:5px 7px;border-radius:8px;background:rgba(0,0,0,.72);border:1px solid var(--brda);color:#fff}.thumb img{width:100%;height:100%;object-fit:cover}.thumb-empty{height:100%;display:grid;place-items:center;color:var(--txd);font-family:'Share Tech Mono';font-size:12px}.media-badges{position:absolute;left:9px;bottom:9px;display:flex;gap:6px}.badge{font-size:9px;letter-spacing:1px;padding:5px 7px;border-radius:8px;background:rgba(0,0,0,.7);border:1px solid var(--brda);color:#fff;backdrop-filter:blur(8px)}.s-info{padding:12px 3px 3px}.s-title{font-family:'Orbitron';font-size:14px;font-weight:700}.s-meta{font-size:11px;color:var(--txm);margin-top:5px}.view-row{display:flex;justify-content:space-between;align-items:center;margin-top:10px}.view-btn,.primary-btn,.danger-btn,.ghost-btn{border:1px solid var(--brda);color:#fff;border-radius:11px;padding:10px 13px;background:linear-gradient(135deg,var(--btn-dark),var(--btn-light));box-shadow:0 0 18px var(--ad);font-weight:700;font-size:11px;letter-spacing:1px}.ghost-btn{background:rgba(255,255,255,.035);box-shadow:none}.danger-btn{background:rgba(150,0,0,.2);border-color:rgba(255,60,80,.3);color:#ff8b9a}.empty{padding:45px 15px;text-align:center;border:1px dashed var(--brda);border-radius:18px;color:var(--txm);grid-column:1/-1}.empty b{display:block;color:#fff;font-family:'Orbitron';margin-bottom:8px}.fab-admin{position:fixed;left:50%;bottom:20px;transform:translateX(-50%);z-index:700;width:60px;height:60px;border-radius:50%;display:grid;place-items:center;background:linear-gradient(145deg,#161722,#050507);border:1px solid var(--brda);box-shadow:0 0 28px var(--ad),0 12px 40px rgba(0,0,0,.6);font-size:22px}.fab-admin span{position:absolute;top:-27px;white-space:nowrap;font-family:'Share Tech Mono';font-size:9px;color:var(--txm);letter-spacing:2px}.overlay{position:fixed;inset:0;z-index:5000;background:rgba(0,0,0,.72);backdrop-filter:blur(14px);display:none;align-items:center;justify-content:center;padding:18px}.overlay.show{display:flex}.modal{width:min(680px,100%);max-height:90vh;overflow:auto;border:1px solid var(--brda);background:linear-gradient(145deg,#0b0c14,#030407);border-radius:22px;padding:20px;box-shadow:0 0 60px rgba(0,0,0,.7),0 0 35px var(--ad)}.modal-head{display:flex;justify-content:space-between;align-items:center;margin-bottom:18px}.modal-head h3{font-family:'Orbitron';font-size:16px}.close{width:36px;height:36px;border:1px solid var(--brd);border-radius:10px;color:#fff;background:rgba(255,255,255,.04)}.field{margin:12px 0}.field label{display:block;font-family:'Share Tech Mono';font-size:10px;letter-spacing:2px;color:var(--txm);margin-bottom:7px}.field input,.field textarea,.field select{width:100%;border:1px solid var(--brd);outline:none;border-radius:12px;background:#07080d;color:#fff;padding:12px;font-family:'Rajdhani';font-size:15px}.field textarea{min-height:150px;resize:vertical}.filebox{border:1px dashed var(--brda);border-radius:12px;padding:14px;background:rgba(255,255,255,.02)}.filebox input{font-size:12px}.actions{display:flex;gap:9px;justify-content:flex-end;margin-top:18px;flex-wrap:wrap}.login-note{font-size:11px;color:var(--txm);margin-top:8px}.admin-list{display:grid;gap:9px}.admin-item{display:flex;align-items:center;justify-content:space-between;gap:10px;border:1px solid var(--brd);border-radius:13px;padding:11px;background:rgba(255,255,255,.025)}.admin-item b{font-family:'Orbitron';font-size:11px}.admin-actions{display:flex;gap:6px}.admin-actions button{padding:8px 9px;border-radius:9px}.detail-wrap{display:none}.detail-wrap.show{display:block}.back-btn{margin-bottom:14px}.detail-title{font-family:'Orbitron';font-size:clamp(20px,6vw,34px);margin:8px 0}.detail-media{display:grid;gap:14px}.media-grid{display:grid;grid-template-columns:repeat(3,minmax(0,1fr));gap:10px;padding:12px}.media-grid .media-tile{border:1px solid var(--brd);border-radius:12px;overflow:hidden;background:#000;min-width:0}.media-grid img{display:block;width:100%;height:220px;object-fit:contain;background:#000}.media-grid video{display:block;width:100%;height:220px;background:#000}.media-count{padding:8px 10px;font-family:'Share Tech Mono';font-size:9px;color:var(--txm);letter-spacing:1px;text-align:center;border-top:1px solid var(--brd)}.media-panel{border:1px solid var(--brd);border-radius:18px;overflow:hidden;background:#050507;box-shadow:0 15px 45px rgba(0,0,0,.3)}.media-panel img{display:block;width:100%;max-height:520px;object-fit:contain;background:#000}.media-panel video{display:block;width:100%;max-height:520px;background:#000}.media-label{padding:11px 13px;border-bottom:1px solid var(--brd);font-family:'Share Tech Mono';font-size:10px;letter-spacing:2px;color:var(--a)}.strategy-text{white-space:pre-wrap;line-height:1.7;font-size:15px;color:var(--a);background:linear-gradient(110deg,var(--a) 0%,#ffffff 18%,var(--a) 36%,var(--a) 64%,#ffffff 82%,var(--a) 100%);background-size:240% 100%;-webkit-background-clip:text;background-clip:text;-webkit-text-fill-color:transparent;animation:noteWater 8s ease-in-out infinite;will-change:background-position}@keyframes noteWater{0%{background-position:100% 50%}50%{background-position:0% 50%}100%{background-position:100% 50%}}@media(max-width:650px){.media-grid{grid-template-columns:repeat(2,minmax(0,1fr))}.media-grid img,.media-grid video{height:180px}}.detail-meta{color:var(--txm);font-size:12px;margin-bottom:15px}.media-tile{cursor:zoom-in;transition:transform .25s ease,box-shadow .25s ease,border-color .25s ease}.media-tile:hover{transform:translateY(-2px);border-color:var(--brda);box-shadow:0 0 24px var(--ad)}.media-lightbox{position:fixed;inset:0;z-index:9000;background:rgba(0,0,0,.78);backdrop-filter:blur(16px);display:none;align-items:center;justify-content:center;padding:22px}.media-lightbox.show{display:flex;animation:lightIn .22s ease-out}.lightbox-card{width:min(900px,94vw);max-height:88vh;border:1px solid var(--brda);border-radius:20px;background:linear-gradient(145deg,#0b0c14,#030407);box-shadow:0 0 60px rgba(0,0,0,.75),0 0 35px var(--ad);overflow:hidden;position:relative;padding:12px}.lightbox-card img,.lightbox-card video{display:block;width:100%;height:auto;max-height:76vh;object-fit:contain;background:#000;border-radius:13px}.lightbox-close{position:absolute;right:20px;top:20px;z-index:2;width:40px;height:40px;border:1px solid var(--brda);border-radius:12px;background:rgba(0,0,0,.72);color:#fff;font-size:24px;box-shadow:0 0 18px var(--ad)}.lightbox-caption{text-align:center;padding:10px 4px 3px;font-family:'Share Tech Mono';font-size:10px;letter-spacing:2px;color:var(--txm)}@keyframes lightIn{from{opacity:0;transform:scale(.97)}to{opacity:1;transform:scale(1)}}
+
+/* AI ANALYSIS UI */
+.ai-analysis-btn{position:fixed;right:16px;bottom:142px;z-index:1200;width:46px;height:46px;border:1px solid var(--brda);border-radius:12px;color:#fff;background:linear-gradient(145deg,rgba(7,8,15,.96),rgba(20,20,32,.96));box-shadow:0 0 24px var(--ad);display:grid;place-items:center;font-size:20px;backdrop-filter:blur(12px)}.ai-analysis-btn:active{transform:scale(.94)}.ai-analysis-btn::after{content:'ANALYSES';position:absolute;right:54px;white-space:nowrap;font-family:'Share Tech Mono',monospace;font-size:8px;letter-spacing:1.5px;color:var(--a);text-shadow:0 0 12px var(--ad);opacity:.95;pointer-events:none}.ai-menu-btn{position:fixed;right:16px;top:18px;z-index:1200;width:48px;height:48px;border:1px solid var(--brda);border-radius:14px;color:#fff;background:linear-gradient(145deg,rgba(7,8,15,.96),rgba(20,20,32,.96));box-shadow:0 0 24px var(--ad);display:grid;place-items:center;font-size:21px;backdrop-filter:blur(12px)}.ai-menu-btn:active{transform:scale(.94)}.ai-tools-panel{position:fixed;right:16px;top:72px;z-index:1199;width:220px;display:none;border:1px solid var(--brda);border-radius:16px;padding:8px;background:rgba(5,6,12,.97);box-shadow:0 20px 50px rgba(0,0,0,.6),0 0 30px var(--ad);backdrop-filter:blur(18px)}.ai-tools-panel.open{display:grid;gap:7px;animation:panelIn .18s ease-out}.ai-tools-panel button{padding:12px;border:1px solid var(--brd);border-radius:11px;color:#fff;text-align:left;background:rgba(255,255,255,.035);font-family:'Rajdhani';font-weight:700}.ai-tools-panel button:hover{border-color:var(--brda);background:var(--ad)}.analysis-view{display:none;position:relative;z-index:2;max-width:980px;margin:0 auto;padding:88px 18px 120px}.analysis-view.show{display:block}.analysis-head{display:flex;align-items:center;gap:10px;margin-bottom:18px}.analysis-logo{width:46px;height:46px;border-radius:13px;display:grid;place-items:center;border:1px solid var(--brda);background:linear-gradient(145deg,var(--ad),rgba(255,255,255,.04));box-shadow:0 0 25px var(--ad);font-size:22px}.analysis-title{font-family:'Orbitron';font-size:18px;letter-spacing:1px}.analysis-sub{font-size:10px;color:var(--txm);font-family:'Share Tech Mono';letter-spacing:1.5px;margin-top:3px}.analysis-card{border:1px solid var(--brda);border-radius:20px;background:linear-gradient(145deg,rgba(255,255,255,.055),rgba(0,0,0,.32));box-shadow:0 18px 55px rgba(0,0,0,.35);padding:16px;margin-bottom:14px}.analysis-grid{display:grid;grid-template-columns:1.1fr .9fr;gap:14px}.ai-file-preview{height:260px;border:1px dashed var(--brda);border-radius:15px;background:#050507;display:grid;place-items:center;overflow:hidden}.ai-file-preview img{max-width:100%;max-height:100%;object-fit:contain}.ai-file-placeholder{color:var(--txm);font-family:'Share Tech Mono';font-size:11px;text-align:center;padding:20px}.analysis-controls{display:grid;grid-template-columns:1fr 1fr;gap:9px}.analysis-controls .field{margin:0}.analysis-actions{display:flex;gap:8px;flex-wrap:wrap;margin-top:12px}.run-ai-btn{flex:1;min-width:180px;padding:13px 15px;border-radius:12px;color:#fff;background:linear-gradient(135deg,var(--btn-dark),var(--btn-light));border:1px solid var(--brda);box-shadow:0 0 22px var(--ad);font-family:'Orbitron';font-size:11px;letter-spacing:1px;font-weight:900}.analysis-note{font-size:11px;color:var(--txm);line-height:1.5;margin-top:10px}.ai-loader{display:none;text-align:center;padding:20px;border:1px solid var(--brda);border-radius:15px;background:rgba(var(--a-rgb),.045);overflow:hidden}.ai-loader.show{display:block}.loader-orb{width:54px;height:54px;margin:0 auto 12px;border-radius:50%;border:1px solid var(--brda);box-shadow:0 0 25px var(--ad);position:relative;animation:orbPulse 1.6s ease-in-out infinite}.loader-orb:after{content:'';position:absolute;inset:8px;border-radius:50%;border:2px solid transparent;border-top-color:var(--a);border-right-color:rgba(255,255,255,.8);animation:spin 1s linear infinite}.loader-text{font-family:'Share Tech Mono';font-size:10px;letter-spacing:2px;color:var(--a);animation:loadFlicker 1s ease-in-out infinite}.ai-results{display:none}.ai-results.show{display:block}.consensus-card{display:grid;grid-template-columns:1fr auto;gap:10px;align-items:center}.signal-badge{font-family:'Orbitron';font-size:32px;font-weight:900;letter-spacing:3px;text-shadow:0 0 30px var(--ad)}.signal-up{color:#31e981}.signal-down{color:#ff5370}.signal-stop{color:#ffd166}.confidence{font-family:'Share Tech Mono';font-size:12px;color:var(--txm)}.model-grid{display:grid;grid-template-columns:repeat(3,1fr);gap:9px;margin-top:12px}.model-card{border:1px solid var(--brd);border-radius:13px;padding:12px;background:rgba(255,255,255,.025)}.model-card b{font-family:'Orbitron';font-size:10px}.model-signal{font-family:'Orbitron';font-size:18px;margin-top:8px}.model-reason{font-size:11px;color:var(--txm);line-height:1.45;margin-top:5px}.reason-box{border:1px solid var(--brd);border-radius:13px;padding:13px;margin-top:10px;background:rgba(255,255,255,.02);line-height:1.6;font-size:13px}.future-list{display:grid;gap:9px}.future-item{display:grid;grid-template-columns:76px 1fr auto;gap:10px;align-items:center;border:1px solid var(--brd);border-radius:12px;padding:11px;background:rgba(255,255,255,.025)}.future-time{font-family:'Share Tech Mono';font-size:10px;color:var(--txm)}.future-main b{font-family:'Orbitron';font-size:12px}.future-main span{display:block;font-size:11px;color:var(--txm);margin-top:3px}.future-sig{font-family:'Orbitron';font-weight:900}.future-up{color:#31e981}.future-down{color:#ff5370}.future-stop{color:#ffd166}.menu-page{display:none;position:relative;z-index:2;max-width:980px;margin:0 auto;padding:88px 18px 120px}.menu-page.show{display:block}.money-grid{display:grid;grid-template-columns:1fr 1fr;gap:10px}.money-days{display:flex;gap:7px;flex-wrap:wrap}.day-chip{padding:8px 11px;border:1px solid var(--brd);border-radius:10px;color:#fff;background:rgba(255,255,255,.03);font-family:'Share Tech Mono';font-size:10px}.day-chip.active{border-color:var(--brda);background:var(--ad);box-shadow:0 0 15px var(--ad)}@keyframes panelIn{from{opacity:0;transform:translateY(-5px) scale(.98)}to{opacity:1;transform:none}}@keyframes orbPulse{0%,100%{transform:scale(.9);box-shadow:0 0 18px var(--ad)}50%{transform:scale(1.05);box-shadow:0 0 35px var(--ad)}}@keyframes spin{to{transform:rotate(360deg)}}@keyframes loadFlicker{0%,100%{opacity:.55}50%{opacity:1}}@media(max-width:650px){.ai-analysis-btn{right:12px;bottom:126px}.ai-menu-btn{top:12px;right:12px}.ai-tools-panel{right:12px;top:66px;width:210px}.analysis-view,.menu-page{padding-top:76px}.analysis-grid{grid-template-columns:1fr}.model-grid{grid-template-columns:1fr}.money-grid{grid-template-columns:1fr}.future-item{grid-template-columns:62px 1fr auto}}
+.toast{position:fixed;left:50%;bottom:92px;transform:translate(-50%,20px);opacity:0;z-index:8000;padding:11px 15px;border:1px solid var(--brda);background:#090a10;border-radius:12px;box-shadow:0 0 25px var(--ad);font-family:'Share Tech Mono';font-size:11px;transition:.25s}.toast.show{opacity:1;transform:translate(-50%,0)}@media(max-width:650px){.strategy-app{padding-top:78px}.strategy-grid{grid-template-columns:1fr}.thumb{height:210px}.stats-row{gap:7px}.mini-stat{padding:11px 6px}.mini-stat b{font-size:17px}.mini-stat span{font-size:9px}.topbar{margin-bottom:8px}}
+<style>.auto-market-box{min-height:46px;display:flex;align-items:center;padding:12px 14px;border:1px solid var(--line);border-radius:14px;background:rgba(255,255,255,.035);color:var(--accent);font-family:Share Tech Mono,monospace;font-weight:700}</style></style><title>Trading Strategy</title><style id="api-key-ui-style">.api-key-panel{margin:0 0 14px;padding:16px;border:1px solid var(--line);border-radius:18px;background:linear-gradient(135deg,rgba(255,255,255,.055),rgba(255,255,255,.018));box-shadow:0 10px 35px rgba(0,0,0,.18)}.api-key-title{font-family:Orbitron,sans-serif;font-weight:900;letter-spacing:.08em;color:var(--accent);margin-bottom:6px}.api-key-sub{font-size:12px;opacity:.7;margin-bottom:12px}.api-key-grid{display:grid;grid-template-columns:1fr 1fr;gap:10px}.api-key-actions{display:flex;gap:8px;flex-wrap:wrap;margin-top:10px}.api-key-status{font-size:12px;margin-top:10px;opacity:.85}.api-key-panel input{width:100%;box-sizing:border-box}.api-key-badge{display:inline-block;padding:3px 8px;border-radius:999px;border:1px solid var(--line);font-size:10px;margin-left:5px}@media(max-width:700px){.api-key-grid{grid-template-columns:1fr}}</style><script>setTimeout(function(){var p=document.getElementById('preloader');if(p){p.classList.add('out');}},2500);</script><style id="api-settings-fab-style">.api-settings-fab{position:fixed;right:18px;bottom:92px;z-index:90;width:48px;height:48px;border-radius:16px;border:1px solid var(--line);background:rgba(8,10,14,.9);color:var(--accent);box-shadow:0 10px 30px rgba(0,0,0,.3);font-size:20px;cursor:pointer}.api-settings-modal{max-width:520px}.api-settings-help{font-size:13px;line-height:1.55;opacity:.8;margin:-4px 0 14px}.api-settings-status{font-size:12px;margin-top:10px;color:var(--accent)}@media(max-width:600px){.api-settings-fab{right:14px;bottom:84px}}@media(min-width:900px){.api-settings-fab{right:24px;bottom:96px}}</style></head><body><div class="scanline"></div><canvas id="pCanvas"></canvas><div id="preloader"><div class="pl-badge">SYSTEM INITIALIZING</div><div class="pl-logo"><span>TRADE</span><span class="r">LAB</span></div><div class="pl-track"><div class="pl-fill"></div></div><div class="pl-pct">100%</div></div><button class="mob-theme-btn" id="themeBtn" title="Colors"><i class="ti ti-palette"></i><span class="btn-ring"></span></button><button class="ai-analysis-btn" id="aiAnalysisBtn" title="Open AI Analysis" aria-label="Open AI Analysis"><i class="ti ti-brain"></i></button><button class="api-settings-fab" id="apiSettingsFab" title="API Settings" aria-label="API Settings">🔐</button><button class="ai-menu-btn" id="aiMenuBtn" title="Menu"><i class="ti ti-menu-2"></i></button><div class="ai-tools-panel" id="aiToolsPanel"><button onclick="openAnalysisPage();closeAiMenu()">🧠 AI Analysis</button><button onclick="openApiSettings();closeAiMenu()">🔐 API Settings</button><button onclick="openFuturePage();closeAiMenu()">📈 Future Signals</button><button onclick="openMoneyPage();closeAiMenu()">💰 Money Management</button><button onclick="showHome();closeAiMenu()">🏠 Strategy Vault</button></div><div class="color-palette" id="colorPalette"><div class="palette-title">CHOOSE ACCENT COLOR</div><div class="color-grid" id="colorGrid"></div><div class="color-name" id="colorName">RED</div></div><main class="strategy-app"><div id="homeView"><div class="install-bar" id="installBar"><img src="./icon-192.png" alt="Media Download Apps"><div class="install-copy"><b>INSTALL APP</b><span>Install Strategy Vault on your phone</span></div><button class="install-btn" id="installBtn">INSTALL</button></div><div class="topbar"><div class="brand"><div class="brand-icon"><img src="./icon-192.png" alt="Media Download Apps"></div><div><div class="brand-title">TRADING STRATEGY</div><div class="brand-sub">PRIVATE KNOWLEDGE LIBRARY</div></div></div></div><section class="hero"><div class="eyebrow">ANALYZE • LEARN • IMPROVE</div><h1>Strategy Vault</h1><p>Save your trading strategies with screenshots, videos and detailed notes — all in one premium library.</p></section><div class="stats-row"><div class="mini-stat"><b id="countStat">0</b><span>STRATEGIES</span></div><div class="mini-stat"><b id="imgStat">0</b><span>SCREENSHOTS</span></div><div class="mini-stat"><b id="vidStat">0</b><span>VIDEOS</span></div></div><div class="section-head"><h2>STRATEGY LIBRARY</h2><span id="updatedText">LOCAL STORAGE</span></div><div id="strategyGrid" class="strategy-grid"></div></div><section id="detailView" class="detail-wrap"><button class="ghost-btn back-btn" onclick="showHome()">← BACK TO STRATEGIES</button><div id="detailContent"></div></section></main><section class="analysis-view" id="analysisView"><div class="analysis-head"><button class="ghost-btn" onclick="showHome()">← BACK</button><div class="analysis-logo">🧠</div><div><div class="analysis-title">AI MARKET ANALYSIS</div><div class="analysis-sub">QUOTEX • SINGLE-AI ANALYSIS • EDUCATIONAL TOOL</div></div></div><div class="api-key-panel"><div class="api-key-title">🔐 AI API KEYS <span class="api-key-badge">GROQ ONLY</span></div><div class="api-key-sub">Website থেকেই key save করো। Groq Qwen vision দিয়ে chart screenshot analysis হবে।</div><div class="api-key-grid"><div class="field"><label>GROQ API KEY</label><input id="groqKeyInput" type="password" placeholder="Paste Groq API key"></div></div><div class="api-key-actions"><button class="primary-btn" id="saveApiKeysBtn">💾 SAVE API KEYS</button><button class="ghost-btn" id="clearApiKeysBtn">CLEAR</button></div><div class="api-key-status" id="apiKeyStatus">Keys are not loaded.</div><div class="analysis-note">⚠️ GitHub Pages/frontend-এ API key fully secret থাকে না। Public site হলে backend/proxy বেশি নিরাপদ।</div></div><div class="analysis-card"><div class="analysis-grid"><div><div class="ai-file-preview" id="analysisPreview"><div class="ai-file-placeholder">UPLOAD A QUOTEX CHART SCREENSHOT<br><small>AI will inspect visible candles, trend and levels.</small></div></div><div class="field" style="margin-top:10px"><label>CHART SCREENSHOT</label><div class="filebox"><input id="analysisImage" type="file" accept="image/*"></div></div></div><div><div class="analysis-controls"><div class="field"><label>MARKET / PAIR</label><div class="auto-market-box" id="analysisMarketAuto">AUTO DETECTED FROM CHART</div></div><div class="field"><label>CANDLE</label><select id="analysisTimeframe"><option>1 minute</option><option>5 minutes</option><option>15 minutes</option><option>30 minutes</option></select></div></div><div class="field"><label>EXTRA CONTEXT</label><textarea id="analysisContext" placeholder="Optional observation..."></textarea></div><div class="analysis-actions"><button class="run-ai-btn" id="runAnalysisBtn">⚡ RUN AI ANALYSIS</button></div><div class="analysis-note">AI output is an estimate, not a guaranteed trade instruction. Screenshot quality and market conditions can change the result.</div></div></div></div><div class="ai-loader" id="aiLoader"><div class="loader-orb"></div><div class="loader-text" id="loaderText">ANALYZING CANDLES…</div></div><div class="ai-results" id="analysisResults"></div></section><section class="analysis-view" id="futureView"><div class="analysis-head"><button class="ghost-btn" onclick="showHome()">← BACK</button><div class="analysis-logo">📈</div><div><div class="analysis-title">FUTURE SIGNALS</div><div class="analysis-sub">UP TO 30 MINUTES • AI ESTIMATES</div></div></div><div class="analysis-card"><div class="analysis-grid"><div><div class="ai-file-preview" id="futurePreview"><div class="ai-file-placeholder">UPLOAD A CHART SCREENSHOT FOR A 30-MINUTE OUTLOOK</div></div><div class="field" style="margin-top:10px"><label>CHART SCREENSHOT</label><div class="filebox"><input id="futureImage" type="file" accept="image/*"></div></div></div><div><div class="money-grid"><div class="field"><label>MARKET / PAIR</label><div class="auto-market-box" id="futureMarketAuto">AUTO DETECTED FROM CHART</div></div><div class="field"><label>CANDLE</label><select id="futureTimeframe"><option value="1">1 minute</option><option value="5">5 minutes</option><option value="15">15 minutes</option></select></div></div><div class="field"><label>NUMBER OF SIGNALS</label><select id="futureCount"><option value="3">3 signals</option><option value="4">4 signals</option><option value="5">5 signals</option><option value="6">6 signals</option></select></div><button class="run-ai-btn" id="runFutureBtn">🔮 GENERATE 30-MIN OUTLOOK</button><div class="analysis-note">Future rows are scenario estimates from the uploaded screenshot, not live-market guarantees.</div></div></div></div><div class="ai-loader" id="futureLoader"><div class="loader-orb"></div><div class="loader-text">BUILDING FUTURE MAP…</div></div><div class="ai-results" id="futureResults"></div></section><section class="menu-page" id="moneyView"><div class="analysis-head"><button class="ghost-btn" onclick="showHome()">← BACK</button><div class="analysis-logo">💰</div><div><div class="analysis-title">MONEY MANAGEMENT</div><div class="analysis-sub">RISK PLAN GENERATOR • NO PROFIT GUARANTEE</div></div></div><div class="analysis-card"><div class="money-grid"><div class="field"><label>BALANCE ($)</label><input id="mmBalance" type="number" min="1" step="0.01" placeholder="100"></div><div class="field"><label>RISK PER DAY</label><select id="mmRisk"><option value="1">Conservative • 1%</option><option value="2">Balanced • 2%</option><option value="3">Aggressive • 3%</option></select></div></div><div class="field"><label>SELECT DAYS</label><div class="money-days" id="moneyDays"></div></div><div class="analysis-actions"><button class="run-ai-btn" id="generateMoneyBtn">💎 GENERATE PLAN</button></div></div><div class="analysis-card" id="moneyResult"><div class="analysis-note">Enter your balance and choose the days you want to plan.</div></div></section><button class="fab-admin" id="adminFab"><span>ADMIN ACCESS</span>🔐</button><div class="overlay" id="loginOverlay"><div class="modal"><div class="modal-head"><h3>🔐 ADMIN LOGIN</h3><button class="close" onclick="closeModal('loginOverlay')">×</button></div><div class="field"><label>ADMIN PASSWORD</label><input id="adminPass" type="password" placeholder="Enter password" autocomplete="off"></div><button class="primary-btn" style="width:100%" onclick="loginAdmin()">LOGIN</button><div class="login-note">Public visitors can only view published strategies.</div></div></div><div class="overlay" id="adminOverlay"><div class="modal"><div class="modal-head"><h3>⚡ ADMIN DASHBOARD</h3><button class="close" onclick="closeModal('adminOverlay')">×</button></div><button class="primary-btn" onclick="openEditor()">＋ ADD NEW STRATEGY</button><div class="section-head" style="margin-top:20px"><h2>MANAGE STRATEGIES</h2><span id="adminCount">0</span></div><div id="adminList" class="admin-list"></div><div class="actions"><button class="ghost-btn" onclick="exportBackup()">EXPORT BACKUP</button><button class="ghost-btn" onclick="document.getElementById('importFile').click()">IMPORT</button><input id="importFile" type="file" accept="application/json" hidden onchange="importBackup(event)"><button class="danger-btn" onclick="logoutAdmin()">LOGOUT</button></div></div></div><div class="overlay" id="editorOverlay"><div class="modal"><div class="modal-head"><h3 id="editorTitle">＋ ADD STRATEGY</h3><button class="close" onclick="closeModal('editorOverlay')">×</button></div><input id="editId" type="hidden"><div class="field"><label>STRATEGY NAME</label><input id="sName" maxlength="80" placeholder="Example: SMC Entry Strategy"></div><div class="field"><label>SCREENSHOTS / PICKS • SELECT 2–3+ TOGETHER</label><div class="filebox"><input id="sImage" type="file" accept="image/*" multiple></div><div id="imageHint" class="login-note"></div></div><div class="field"><label>VIDEOS • SELECT 2–3+ TOGETHER</label><div class="filebox"><input id="sVideo" type="file" accept="video/*" multiple></div><div id="videoHint" class="login-note"></div></div><div class="field"><label>STRATEGY TEXT</label><textarea id="sText" placeholder="Write entry rules, confirmation, stop loss, take profit, notes..."></textarea></div><div class="actions"><button class="ghost-btn" onclick="closeModal('editorOverlay')">CANCEL</button><button class="primary-btn" onclick="saveStrategy()">✓ SAVE & PUBLISH</button></div></div></div><div class="media-lightbox" id="mediaLightbox" onclick="closeLightbox(event)"><div class="lightbox-card" id="lightboxCard"><button class="lightbox-close" onclick="closeLightbox(event)">×</button><div id="lightboxMedia"></div><div class="lightbox-caption" id="lightboxCaption">TAP OUTSIDE TO CLOSE</div></div></div><div class="toast" id="toast"></div><script>
+const DB_NAME='trading_strategy_v1', STORE='strategies';let strategies=[],isAdmin=false;const $=id=>document.getElementById(id);function openDB(){return new Promise((res,rej)=>{const r=indexedDB.open(DB_NAME,1);r.onupgradeneeded=()=>{if(!r.result.objectStoreNames.contains(STORE))r.result.createObjectStore(STORE,{keyPath:'id'})};r.onsuccess=()=>res(r.result);r.onerror=()=>rej(r.error)})}async function getAll(){const db=await openDB();return new Promise((res,rej)=>{const q=db.transaction(STORE,'readonly').objectStore(STORE).getAll();q.onsuccess=()=>res(q.result||[]);q.onerror=()=>rej(q.error)})}async function put(x){const db=await openDB();return new Promise((res,rej)=>{const t=db.transaction(STORE,'readwrite');t.objectStore(STORE).put(x);t.oncomplete=res;t.onerror=()=>rej(t.error)})}async function del(id){const db=await openDB();return new Promise((res,rej)=>{const t=db.transaction(STORE,'readwrite');t.objectStore(STORE).delete(id);t.oncomplete=res;t.onerror=()=>rej(t.error)})}function blobURL(b){return b?URL.createObjectURL(b):''}async function refresh(){strategies=await getAll();renderCards();renderAdmin()}function esc(s){return String(s||'').replace(/[&<>'"]/g,c=>({'&':'&amp;','<':'&lt;','>':'&gt;',"'":'&#39;','"':'&quot;'}[c]))}function asArray(v){return Array.isArray(v)?v:(v?[v]:[])}function blobURL(b){return b?URL.createObjectURL(b):''}function renderCards(){
+$('countStat').textContent=strategies.length;$('imgStat').textContent=strategies.reduce((n,x)=>n+asArray(x.image).length,0);$('vidStat').textContent=strategies.reduce((n,x)=>n+asArray(x.video).length,0);const g=$('strategyGrid');if(!strategies.length){g.innerHTML='<div class="empty"><b>NO STRATEGIES YET</b>Admin can add the first strategy from the 🔐 button below.</div>';return}g.innerHTML=strategies.map(x=>{const imgs=asArray(x.image),vids=asArray(x.video);const preview=imgs.length?`<div class="thumb-media-grid">${imgs.slice(0,3).map(b=>`<img src="${blobURL(b)}" alt="${esc(x.name)} pick">`).join('')}</div>${imgs.length>3?`<span class="thumb-media-more">+${imgs.length-3} PICKS</span>`:''}`:'<div class="thumb-empty">NO PREVIEW IMAGE</div>';return `<article class="s-card" onclick="openDetail('${x.id}')"><div class="thumb">${preview}<div class="media-badges">${imgs.length?`<span class="badge">📸 ${imgs.length} PICK${imgs.length>1?'S':''}</span>`:''}${vids.length?`<span class="badge">🎥 ${vids.length} VIDEO${vids.length>1?'S':''}</span>`:''}</div></div><div class="s-info"><div class="s-title">${esc(x.name)}</div><div class="s-meta">Trading strategy • saved in vault</div><div class="view-row"><span class="s-meta">VIEW DETAILS</span><button class="view-btn">OPEN →</button></div></div></article>`}).join('')}function renderAdmin(){const l=$('adminList');$('adminCount').textContent=strategies.length;l.innerHTML=strategies.length?strategies.map(x=>{const ni=asArray(x.image).length,nv=asArray(x.video).length;return `<div class="admin-item"><div><b>${esc(x.name)}</b><div class="s-meta">${ni?`${ni} Pick${ni>1?'s':''} `:''}${nv?`${nv} Video${nv>1?'s':''}`:''}</div></div><div class="admin-actions"><button class="ghost-btn" onclick="openEditor('${x.id}')">EDIT</button><button class="danger-btn" onclick="removeStrategy('${x.id}')">DELETE</button></div></div>`}).join(''):'<div class="empty">No strategies saved.</div>'}function requestNotificationPermissionOnce(){if(localStorage.getItem('vaultNotifAsked')==='1')return;localStorage.setItem('vaultNotifAsked','1');if(!('Notification' in window))return;try{Notification.requestPermission().then(r=>{if(r==='granted')toast('Notifications enabled 🔔');else toast('Notifications are off')}).catch(()=>{})}catch(e){}}function openMedia(type,id,label){requestNotificationPermissionOnce();const x=strategies.find(a=>a.id===id);if(!x)return;const arr=type==='image'?asArray(x.image):asArray(x.video);const b=arr.find((_,i)=>String(i)===String(label-1));if(!b)return;const src=blobURL(b);$('lightboxMedia').innerHTML=type==='image'?`<img src="${src}" alt="${esc(x.name)}">`:`<video controls autoplay playsinline src="${src}"></video>`;$('lightboxCaption').textContent=`${type==='image'?'PICK':'VIDEO'} ${label} • ${esc(x.name)}`;$('mediaLightbox').classList.add('show');document.body.style.overflow='hidden'}function closeLightbox(e){if(e&&e.target&&e.target.id==='lightboxCard')return;if(e&&e.stopPropagation)e.stopPropagation();$('mediaLightbox').classList.remove('show');$('lightboxMedia').innerHTML='';document.body.style.overflow=''}function openDetail(id){const x=strategies.find(a=>a.id===id);if(!x)return;requestNotificationPermissionOnce();$('homeView').style.display='none';$('detailView').classList.add('show');const imgs=asArray(x.image),vids=asArray(x.video);const pickHtml=imgs.length?`<div class="media-panel"><div class="media-label">📸 SCREENSHOTS / PICKS • ${imgs.length}</div><div class="media-grid">${imgs.map((b,i)=>`<div class="media-tile" onclick="openMedia('image','${x.id}',${i+1})"><img src="${blobURL(b)}" alt="${esc(x.name)} pick ${i+1}"><div class="media-count">PICK ${i+1} • TAP TO ENLARGE</div></div>`).join('')}</div></div>`:'';const videoHtml=vids.length?`<div class="media-panel"><div class="media-label">🎥 STRATEGY VIDEOS • ${vids.length}</div><div class="media-grid">${vids.map((b,i)=>`<div class="media-tile" onclick="openMedia('video','${x.id}',${i+1})"><video controls playsinline preload="metadata" src="${blobURL(b)}"></video><div class="media-count">VIDEO ${i+1} • TAP TO ENLARGE</div></div>`).join('')}</div></div>`:'';$('detailContent').innerHTML=`<div class="eyebrow">TRADING STRATEGY</div><div class="detail-title">${esc(x.name)}</div><div class="detail-meta">Saved in Strategy Vault</div><div class="detail-media">${pickHtml}${videoHtml}<div class="media-panel"><div class="media-label">📝 STRATEGY NOTES</div><div class="strategy-text" style="padding:16px">${esc(x.text||'No notes added.')}</div></div></div>`;scrollTo({top:0,behavior:'smooth'})}function showHome(){$('detailView').classList.remove('show');$('homeView').style.display='block';scrollTo({top:0,behavior:'smooth'})}function closeModal(id){$(id).classList.remove('show')}$('adminFab').onclick=()=>{if(isAdmin)$('adminOverlay').classList.add('show');else{$('loginOverlay').classList.add('show');setTimeout(()=>$('adminPass').focus(),100)}};function loginAdmin(){if($('adminPass').value==='Fx11'){isAdmin=true;$('adminPass').value='';closeModal('loginOverlay');$('adminOverlay').classList.add('show');toast('Admin login successful')}else toast('Wrong password')}function logoutAdmin(){isAdmin=false;closeModal('adminOverlay');toast('Logged out')}function fileNames(files){return Array.from(files||[]).map(f=>f.name).join(' • ')}function openEditor(id=''){const x=strategies.find(a=>a.id===id);const imgs=asArray(x?.image),vids=asArray(x?.video);$('editId').value=id;$('sName').value=x?.name||'';$('sText').value=x?.text||'';$('imageHint').textContent=imgs.length?`${imgs.length} existing pick${imgs.length>1?'s':''} saved. Select new picks to replace them.`:'';$('videoHint').textContent=vids.length?`${vids.length} existing video${vids.length>1?'s':''} saved. Select new videos to replace them.`:'';$('sImage').value='';$('sVideo').value='';$('editorTitle').textContent=id?'✎ EDIT STRATEGY':'＋ ADD STRATEGY';closeModal('adminOverlay');$('editorOverlay').classList.add('show')}const notifChannel=('BroadcastChannel' in window)?new BroadcastChannel('strategy-vault-updates'):null;function notifyNewStrategy(name){if('Notification' in window&&Notification.permission==='granted'){try{new Notification('New Strategy Added 🔥',{body:name+' has been published in Strategy Vault.',icon:'./icon-192.png',badge:'./icon-192.png'})}catch(e){}}}if(notifChannel){notifChannel.onmessage=e=>{if(e.data&&e.data.type==='NEW_STRATEGY')notifyNewStrategy(e.data.name)}}window.addEventListener('storage',e=>{if(e.key==='vaultNewStrategy'&&e.newValue){try{const d=JSON.parse(e.newValue);notifyNewStrategy(d.name)}catch(err){}}});async function saveStrategy(){const name=$('sName').value.trim(),text=$('sText').value.trim(),id=$('editId').value||crypto.randomUUID(),isNew=!strategies.some(x=>x.id===id);if(!name)return toast('Strategy name is required');const old=strategies.find(x=>x.id===id)||{};const selectedImages=Array.from($('sImage').files||[]),selectedVideos=Array.from($('sVideo').files||[]);const x={id,name,text,image:selectedImages.length?selectedImages:asArray(old.image),video:selectedVideos.length?selectedVideos:asArray(old.video),updatedAt:Date.now()};await put(x);closeModal('editorOverlay');await refresh();if(isNew){const payload={type:'NEW_STRATEGY',name,at:Date.now()};try{localStorage.setItem('vaultNewStrategy',JSON.stringify(payload))}catch(e){}if(notifChannel)notifChannel.postMessage(payload);notifyNewStrategy(name)}toast('Strategy published successfully')}async function removeStrategy(id){if(confirm('Delete this strategy?')){await del(id);await refresh();toast('Strategy deleted')}}function toast(msg){const t=$('toast');t.textContent=msg;t.classList.add('show');clearTimeout(window.tt);window.tt=setTimeout(()=>t.classList.remove('show'),2200)}function blobToData(b){return new Promise((res,rej)=>{const r=new FileReader();r.onload=()=>res(r.result);r.onerror=rej;r.readAsDataURL(b)})}async function exportBackup(){const data=await getAll(),out=[];for(const x of data){const imgs=asArray(x.image),vids=asArray(x.video);out.push({id:x.id,name:x.name,text:x.text,image:await Promise.all(imgs.map(async b=>({type:b.type,data:await blobToData(b)}))),video:await Promise.all(vids.map(async b=>({type:b.type,data:await blobToData(b)}))),updatedAt:x.updatedAt})}const a=document.createElement('a');a.href=URL.createObjectURL(new Blob([JSON.stringify(out)],{type:'application/json'}));a.download='trading-strategy-backup.json';a.click();toast('Backup exported')}function dataToBlob(o){if(!o)return null;const data=o.data.split(',')[1],bin=atob(data),arr=new Uint8Array(bin.length);for(let i=0;i<bin.length;i++)arr[i]=bin.charCodeAt(i);return new Blob([arr],{type:o.type||'application/octet-stream'})}async function importBackup(e){const f=e.target.files[0];if(!f)return;try{for(const x of JSON.parse(await f.text())){const image=Array.isArray(x.image)?x.image.map(dataToBlob):[dataToBlob(x.image)].filter(Boolean);const video=Array.isArray(x.video)?x.video.map(dataToBlob):[dataToBlob(x.video)].filter(Boolean);await put({...x,image,video})}await refresh();toast('Backup imported')}catch(err){toast('Invalid backup file')}e.target.value=''}const COLOR_THEMES=[['#ff0033','#cc0022','#ff4466','RED'],['#ff6b00','#d94f00','#ff9a4d','ORANGE'],['#ffb300','#d58d00','#ffd45c','GOLD'],['#ffe600','#bda900','#fff27a','YELLOW'],['#7bdc00','#4f9e00','#a6f04d','LIME'],['#00d46a','#009b4c','#48ef9b','GREEN'],['#00e5ff','#0097aa','#66f1ff','CYAN'],['#1683ff','#0756b5','#62a9ff','BLUE'],['#4f46e5','#3730a3','#818cf8','INDIGO'],['#8b5cf6','#6334b5','#b38bff','VIOLET'],['#ec4899','#b72d73','#ff7fc2','PINK'],['#ffffff','#bfc5d1','#ffffff','WHITE']];function setTheme(c,d,l,n){document.documentElement.style.setProperty('--a',c);document.documentElement.style.setProperty('--btn-dark',d);document.documentElement.style.setProperty('--btn-light',l);const m=c.match(/#([0-9a-f]{6})/i);if(m){const q=parseInt(m[1],16);document.documentElement.style.setProperty('--a-rgb',`${q>>16},${(q>>8)&255},${q&255}`)}$('colorName').textContent=n;document.querySelectorAll('.color-swatch').forEach(x=>x.classList.toggle('active',x.dataset.name===n));localStorage.setItem('vaultTheme',JSON.stringify([c,d,l,n]));$('colorPalette').classList.remove('open')}
+function buildPalette(){const g=$('colorGrid');g.innerHTML='';COLOR_THEMES.forEach(x=>{const b=document.createElement('button');b.type='button';b.className='color-swatch';b.dataset.name=x[3];b.title=x[3];b.style.background=`linear-gradient(135deg,${x[0]},${x[2]})`;b.style.color=x[0];b.addEventListener('click',ev=>{ev.preventDefault();ev.stopPropagation();setTheme(x[0],x[1],x[2],x[3])});g.appendChild(b)});let saved;try{saved=JSON.parse(localStorage.getItem('vaultTheme'))}catch(e){};if(saved&&saved.length===4)setTheme(...saved)}
+buildPalette();$('sImage').addEventListener('change',e=>{if(e.target.files.length)$('imageHint').textContent=`Selected ${e.target.files.length} pick${e.target.files.length>1?'s':''}: ${fileNames(e.target.files)}`});$('sVideo').addEventListener('change',e=>{if(e.target.files.length)$('videoHint').textContent=`Selected ${e.target.files.length} video${e.target.files.length>1?'s':''}: ${fileNames(e.target.files)}`});$('themeBtn').addEventListener('click',e=>{e.preventDefault();e.stopPropagation();$('colorPalette').classList.toggle('open')});document.addEventListener('click',e=>{if(!$('colorPalette').contains(e.target)&&!$('themeBtn').contains(e.target))$('colorPalette').classList.remove('open')});let deferredPrompt=null;const installBar=$('installBar'),installBtn=$('installBtn');window.addEventListener('beforeinstallprompt',e=>{e.preventDefault();deferredPrompt=e;installBar.style.display='flex'});installBtn.onclick=async()=>{if(deferredPrompt){deferredPrompt.prompt();await deferredPrompt.userChoice;deferredPrompt=null}else if(/iphone|ipad|ipod/i.test(navigator.userAgent)){toast('On iPhone: Share → Add to Home Screen')}else{toast('Use your browser menu → Install app / Add to Home screen')}};window.addEventListener('appinstalled',()=>{installBar.style.display='none';toast('App installed successfully')});if(window.matchMedia('(display-mode: standalone)').matches||window.navigator.standalone){installBar.style.display='none'}$('adminPass').addEventListener('keydown',e=>{if(e.key==='Enter')loginAdmin()});addEventListener('load',async()=>{try{await refresh()}catch(e){console.error('Vault startup error:',e)}try{startParticles()}catch(e){console.error('Particles error:',e)}});setTimeout(()=>{const p=$('preloader');if(p)p.classList.add('out')},1600);function startParticles(){const c=$('pCanvas'),ctx=c.getContext('2d');let W,H,p=[];function size(){W=innerWidth;H=innerHeight;c.width=W*devicePixelRatio;c.height=H*devicePixelRatio;ctx.setTransform(devicePixelRatio,0,0,devicePixelRatio,0,0)}size();addEventListener('resize',size);for(let i=0;i<55;i++)p.push({x:Math.random()*W,y:Math.random()*H,vx:(Math.random()-.5)*.25,vy:(Math.random()-.5)*.25,r:Math.random()*1.5+.3});function loop(){ctx.clearRect(0,0,W,H);for(const q of p){q.x+=q.vx;q.y+=q.vy;if(q.x<0||q.x>W)q.vx*=-1;if(q.y<0||q.y>H)q.vy*=-1;ctx.beginPath();ctx.arc(q.x,q.y,q.r,0,Math.PI*2);const rgb=getComputedStyle(document.documentElement).getPropertyValue('--a-rgb').trim();ctx.fillStyle=`rgba(${rgb},.45)`;ctx.fill()}requestAnimationFrame(loop)}loop()}</script><script>
+const AI_CFG=window.AI_CONFIG||{}; AI_CFG.GROQ_MODEL='qwen/qwen3.8-27b';
+function loadSavedApiKeys(){try{const x=JSON.parse(localStorage.getItem('vaultApiKeys')||'{}');if(x.groq)AI_CFG.GROQ_API_KEY=x.groq;return x}catch(e){return {}}}
+function maskKey(k){return k?(k.slice(0,5)+'••••••'+k.slice(-4)):''}
+function refreshApiKeyUI(){const q=AI_CFG.GROQ_API_KEY||'',qi=$('groqKeyInput'),st=$('apiKeyStatus');if(qi)qi.value=q;if(st)st.textContent=q?`Saved: Groq ✓ ${maskKey(q)}`:'Groq key is not loaded.'}
+function saveApiKeys(){const q=$('groqKeyInput').value.trim();AI_CFG.GROQ_API_KEY=q;localStorage.setItem('vaultApiKeys',JSON.stringify({groq:q}));refreshApiKeyUI();toast('Groq API key saved on this device')}
+function clearApiKeys(){AI_CFG.GROQ_API_KEY='';localStorage.removeItem('vaultApiKeys');refreshApiKeyUI();toast('Groq API key cleared')}
+loadSavedApiKeys();
+function closeAiMenu(){$('aiToolsPanel').classList.remove('open')}
+$('aiAnalysisBtn').onclick=()=>openAnalysisPage();
+$('aiMenuBtn').onclick=e=>{e.stopPropagation();$('aiToolsPanel').classList.toggle('open')};
+document.addEventListener('click',e=>{if(!$('aiToolsPanel').contains(e.target)&&!$('aiMenuBtn').contains(e.target))closeAiMenu()});
+function hideViews(){['homeView','detailView','analysisView','futureView','moneyView'].forEach(id=>{const e=$(id);if(!e)return;if(id==='homeView')e.style.display='none';else e.classList.remove('show')})}
+function openAnalysisPage(){hideViews();$('analysisView').classList.add('show');scrollTo({top:0,behavior:'smooth'});requestNotificationPermissionOnce()}
+function openFuturePage(){hideViews();$('futureView').classList.add('show');scrollTo({top:0,behavior:'smooth'});requestNotificationPermissionOnce()}
+function openMoneyPage(){hideViews();$('moneyView').classList.add('show');scrollTo({top:0,behavior:'smooth'})}
+function showHome(){hideViews();$('homeView').style.display='block';scrollTo({top:0,behavior:'smooth'})}
+function previewImageInput(input,id){const f=input.files?.[0];if(!f)return;const r=new FileReader();r.onload=()=>$(id).innerHTML=`<img src="${r.result}" alt="Chart preview">`;r.readAsDataURL(f)}
+$('analysisImage').addEventListener('change',()=>previewImageInput($('analysisImage'),'analysisPreview'));
+$('futureImage').addEventListener('change',()=>previewImageInput($('futureImage'),'futurePreview'));
+const wait=ms=>new Promise(r=>setTimeout(r,ms));
+function cleanJsonText(t){let s=String(t||'').trim().replace(/^```(?:json)?/i,'').replace(/```$/,'').trim();const a=s.indexOf('{'),b=s.lastIndexOf('}');return a>=0&&b>a?s.slice(a,b+1):s}
+const SIGNAL_SCHEMA='Return ONLY valid JSON: {"market":"detected market/pair or UNKNOWN","signal":"UP|DOWN|STOP","confidence":0-100,"timeframe":"string","reason":"short reason","risk":"LOW|MEDIUM|HIGH"}. Detect visible market/pair. Never invent it. Use UNKNOWN if unreadable.';
+function buildPrompt(m,tf,c,mode,marketData){return `You are a technical-chart analysis assistant. Analyze the Quotex screenshot. Automatically detect the market/pair from visible text/header/watermark. Do not ask the user for market/pair. Candle timeframe: ${tf}. Mode: ${mode}. Extra context: ${c||'none'}. ${marketData||''} Inspect trend, structure, momentum, support/resistance, candle bodies/wicks and current candle. Predict next candle direction only when evidence is sufficiently strong. Use STOP if chart is unreadable or evidence is weak. ${SIGNAL_SCHEMA}`}
+function dataUrlFromFile(f){return new Promise((res,rej)=>{if(!f)return rej(Error('No image selected'));const r=new FileReader();r.onload=()=>res(r.result);r.onerror=()=>rej(Error('Could not read image'));r.readAsDataURL(f)})}
+async function prepareChartImage(f){const raw=await dataUrlFromFile(f);return await new Promise(resolve=>{const im=new Image();im.onload=()=>{const max=1600,scale=Math.min(1,max/Math.max(im.naturalWidth,im.naturalHeight));const w=Math.max(1,Math.round(im.naturalWidth*scale)),h=Math.max(1,Math.round(im.naturalHeight*scale));const c=document.createElement('canvas');c.width=w;c.height=h;c.getContext('2d').drawImage(im,0,0,w,h);resolve(c.toDataURL('image/jpeg',.84))};im.onerror=()=>resolve(raw);im.src=raw})}
+function keyMissing(v){return !v||String(v).trim()===''||String(v).includes('PASTE_')}
+function apiErrorText(p,s,t){let m='';try{const j=JSON.parse(t||'{}');m=j.error?.message||j.message||''}catch{}return p+' '+s+(m?' • '+m:'')}
+function imageParts(img){const m=(String(img).match(/^data:(image\/[^;]+);base64,/)||[])[1]||'image/jpeg';return {mime_type:m,data:String(img).split(',')[1]||''}}
+async function callGroq(img,prompt){if(keyMissing(AI_CFG.GROQ_API_KEY))throw Error('Groq key not configured');const r=await fetch('https://api.groq.com/openai/v1/chat/completions',{method:'POST',headers:{'Content-Type':'application/json','Authorization':'Bearer '+AI_CFG.GROQ_API_KEY},body:JSON.stringify({model:AI_CFG.GROQ_MODEL||'qwen/qwen3.6-27b',messages:[{role:'user',content:[{type:'text',text:prompt},{type:'image_url',image_url:{url:img}}]}],temperature:.4,max_completion_tokens:1000,reasoning_format:'hidden',response_format:{type:'json_object'}})});if(!r.ok)throw Error(apiErrorText('Groq',r.status,await r.text()));const j=await r.json(),t=j.choices?.[0]?.message?.content||'';if(!t)throw Error('Groq returned empty response');return t}
+function parseSignal(raw,name){try{const j=JSON.parse(cleanJsonText(raw));return{name,market:j.market||'UNKNOWN',signal:['UP','DOWN','STOP'].includes(String(j.signal).toUpperCase())?String(j.signal).toUpperCase():'STOP',confidence:Math.max(0,Math.min(100,Number(j.confidence)||0)),reason:j.reason||'No reason returned.',risk:j.risk||'HIGH',timeframe:j.timeframe||''}}catch{return{name,market:'UNKNOWN',signal:'STOP',confidence:0,reason:'AI returned unreadable JSON.',risk:'HIGH',timeframe:''}}}
+function signalClass(s){return s==='UP'?'signal-up':s==='DOWN'?'signal-down':'signal-stop'}
+
+function renderDualAI(r,all){return `<div class="analysis-card consensus-card"><div><div class="eyebrow">FINAL AI SIGNAL</div><div class="signal-badge ${signalClass(r.signal)}">${r.signal}</div><div class="confidence">Confidence estimate: ${r.confidence}% • ${esc(r.source)}</div><div class="analysis-note"><b>DETECTED MARKET:</b> ${esc(r.market)}</div></div><div style="font-size:34px">${r.signal==='UP'?'🟢':r.signal==='DOWN'?'🔴':'🛑'}</div></div><div class="analysis-card"><div class="section-head"><h2>AI STATUS</h2><span>GROQ ONLY</span></div>${all.map(x=>`<div class="model-card"><div class="model-signal ${signalClass(x.signal)}">${x.name}: ${x.signal} ${x.confidence}%</div><div class="model-reason">${esc(x.reason)}</div><div class="analysis-note">Risk: ${esc(x.risk)} • ${esc(x.timeframe||'current candle')}</div></div>`).join('')}</div>`}
+async function runDualAI(img,setL){
+  const prompt=buildPrompt('',$('analysisTimeframe').value,$('analysisContext').value.trim(),'next-candle','Use screenshot only; no external market data.');
+  setL('GROQ QWEN ANALYZING…');
+  const raw=await callGroq(img,prompt);
+  const result=parseSignal(raw,'GROQ');
+  $('analysisMarketAuto').textContent='DETECTED: '+result.market;
+  return {final:result,all:[result]};
+}
+$('runAnalysisBtn').onclick=async()=>{const file=$('analysisImage').files?.[0];if(!file)return toast('Upload a Quotex chart screenshot first');$('aiLoader').classList.add('show');$('analysisResults').classList.remove('show');try{const img=await prepareChartImage(file),out=await Promise.race([runDualAI(img,t=>$('loaderText').textContent=t),wait(30000).then(()=>{throw Error('Analysis timed out. Try again.')})]);$('analysisResults').innerHTML=renderDualAI(out.final,out.all);$('analysisResults').classList.add('show')}catch(e){$('analysisResults').innerHTML=`<div class="analysis-card"><div class="signal-badge signal-stop">STOP</div><div class="reason-box">${esc(e.message||'Analysis failed.')}</div></div>`;$('analysisResults').classList.add('show')}finally{$('aiLoader').classList.remove('show')}};
+
+function buildFuturePrompt(m,tf,c,marketData){return `Analyze this trading chart screenshot as an educational scenario. Market: ${m||'unknown'}. Candle: ${tf} minute(s). Generate ${c} possible scenarios within the next 30 minutes. Market-data context: ${marketData||'not available; do not invent it.'}. Use visible chart evidence only. Return ONLY JSON: {"market":"detected market/pair or UNKNOWN","signals":[{"afterMinutes":number,"signal":"UP|DOWN|STOP","confidence":number,"reason":"short reason"}]}. No guaranteed predictions.`}
+function renderFuture(j){return `<div class="analysis-card"><div class="section-head"><h2>30-MINUTE OUTLOOK</h2><span>AI SCENARIOS</span></div><div class="future-list">${j.signals.map(x=>`<div class="future-item"><div class="future-time">+${Number(x.afterMinutes)||0} MIN</div><div class="future-main"><b>Future candle scenario</b><span>${esc(x.reason||'No reason')}</span></div><div class="future-sig ${signalClass(String(x.signal||'STOP').toUpperCase())}">${String(x.signal||'STOP').toUpperCase()}<br><small>${Number(x.confidence)||0}%</small></div></div>`).join('')}</div><div class="analysis-note">Scenario estimates only; live market data is optional and may not match Quotex OTC pricing.</div></div>`}
+async function futureDual(img,p,setL){setL('GROQ QWEN ANALYZING…');const raw=await callGroq(img,p);const j=JSON.parse(cleanJsonText(raw));if(!Array.isArray(j.signals))throw Error('Groq returned no future signals.');return {name:'GROQ',j};}
+$('runFutureBtn').onclick=async()=>{const file=$('futureImage').files?.[0];if(!file)return toast('Upload a chart screenshot first');$('futureLoader').classList.add('show');$('futureResults').classList.remove('show');try{const img=await prepareChartImage(file),p=buildFuturePrompt('',$('futureTimeframe').value,$('futureCount').value,''),out=await Promise.race([futureDual(img,p,t=>document.querySelector('#futureLoader .loader-text').textContent=t),wait(30000).then(()=>{throw Error('Analysis timed out. Try again.')})]);$('futureMarketAuto').textContent='DETECTED: '+(out.j.market||'UNKNOWN');$('futureResults').innerHTML=renderFuture(out.j)+`<div class="analysis-card"><div class="analysis-note"><b>AI:</b> ${out.name} • If the other AI failed, the working AI result is used automatically.</div></div>`;$('futureResults').classList.add('show')}catch(e){$('futureResults').innerHTML=`<div class="analysis-card"><div class="signal-badge signal-stop">STOP</div><div class="reason-box">${esc(e.message||'Future analysis failed.')}</div></div>`;$('futureResults').classList.add('show')}finally{$('futureLoader').classList.remove('show')}};
+const DAYS=[['1','DAY 1'],['2','DAY 2'],['3','DAY 3'],['4','DAY 4'],['5','DAY 5'],['6','DAY 6'],['7','DAY 7'],['14','14 DAYS'],['30','30 DAYS']];let selectedDays=['1','2','3'];$('moneyDays').innerHTML=DAYS.map(([v,t])=>`<button class="day-chip ${selectedDays.includes(v)?'active':''}" data-day="${v}">${t}</button>`).join('');document.querySelectorAll('.day-chip').forEach(b=>b.onclick=()=>{const v=b.dataset.day;if(selectedDays.includes(v))selectedDays=selectedDays.filter(x=>x!==v);else selectedDays.push(v);b.classList.toggle('active')});$('generateMoneyBtn').onclick=()=>{const bal=Number($('mmBalance').value),risk=Number($('mmRisk').value);if(!bal||bal<=0)return toast('Enter a valid balance');if(!selectedDays.length)return toast('Select at least one day');const daily=bal*risk/100,rows=selectedDays.sort((a,b)=>Number(a)-Number(b)).map(d=>{const n=Number(d),base=bal*Math.pow(1-risk/100,n-1),loss=base*risk/100;return `<div class="future-item"><div class="future-time">DAY ${n}</div><div class="future-main"><b>Max planned risk: $${loss.toFixed(2)}</b><span>Suggested daily stop after reaching the risk limit.</span></div><div class="future-sig signal-stop">🛡️</div></div>`}).join('');$('moneyResult').innerHTML=`<div class="eyebrow">YOUR PLAN</div><h2 style="font-family:Orbitron;margin:8px 0">💎 Risk-first management</h2><div class="money-result">Balance: <strong>$${bal.toFixed(2)}</strong><br>Selected risk: <strong>${risk}% per day</strong><br>Starting daily risk cap: <strong>$${daily.toFixed(2)}</strong></div><div class="future-list" style="margin-top:12px">${rows}</div><div class="analysis-note">Risk-control template only. It is not a profit guarantee and should not be treated as personalized financial advice.</div>`};
+</script><script>if('serviceWorker' in navigator)navigator.serviceWorker.register('./sw.js').catch(()=>{});</script><div class="overlay" id="apiSettingsOverlay"><div class="modal api-settings-modal"><div class="modal-head"><h3>🔐 GROQ API SETTINGS</h3><button class="close" onclick="closeModal('apiSettingsOverlay')">×</button></div><div class="api-settings-help">API key GitHub-এ রাখতে হবে না। এখানে বসালে শুধু এই browser/device-এ save থাকবে।</div><div class="field"><label>GROQ API KEY</label><input id="settingsGroqKey" type="password" placeholder="Paste Groq API key" autocomplete="off"></div><div class="api-key-actions"><button class="primary-btn" id="settingsSaveBtn">💾 SAVE KEY</button><button class="ghost-btn" id="settingsClearBtn">CLEAR</button></div><div class="api-settings-status" id="settingsApiStatus">No Groq API key saved.</div><div class="analysis-note">⚠️ Frontend/GitHub Pages-এ browser-side API key পুরোপুরি secret নয়।</div></div></div>
+<script id="api-settings-extra-js">
+(function(){
+  function syncSettings(){
+    const q=AI_CFG.GROQ_API_KEY||'';
+    const qi=document.getElementById('settingsGroqKey'), st=document.getElementById('settingsApiStatus');
+    if(qi) qi.value=q;
+    if(st) st.textContent=q?('Saved: Groq ✓ '+maskKey(q)):'No Groq API key saved.';
+  }
+  window.openApiSettings=function(){ syncSettings(); const el=document.getElementById('apiSettingsOverlay'); if(el) el.classList.add('show'); };
+  const fab=document.getElementById('apiSettingsFab'); if(fab) fab.onclick=window.openApiSettings;
+  const save=document.getElementById('settingsSaveBtn'); if(save) save.onclick=function(){
+    const q=(document.getElementById('settingsGroqKey')?.value||'').trim();
+    AI_CFG.GROQ_API_KEY=q; localStorage.setItem('vaultApiKeys',JSON.stringify({groq:q}));
+    syncSettings(); if(typeof toast==='function') toast('Groq API key saved on this device');
+  };
+  const clear=document.getElementById('settingsClearBtn'); if(clear) clear.onclick=function(){
+    AI_CFG.GROQ_API_KEY=''; localStorage.removeItem('vaultApiKeys'); syncSettings(); if(typeof toast==='function') toast('Groq API key cleared');
+  };
+  window.addEventListener('load',function(){try{loadSavedApiKeys();}catch(e){} syncSettings();});
+})();
+</script></body></html>
